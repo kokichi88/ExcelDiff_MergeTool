@@ -16,6 +16,32 @@ public class ArrayUtils {
         return builder.toString();
     }
 
+    public static String[] toArray(String str) {
+        String[] ret = new String[str.length()];
+        for(int i = 0; i < ret.length; ++i) {
+            ret[i] = String.valueOf(str.charAt(i));
+        }
+        return ret;
+    }
+
+    public static <T> boolean startsWith(T[] longArr, T[] shortArr, int offset) {
+        if(offset < 0 || offset + shortArr.length > longArr.length) return false;
+        for(int i = 0; i < shortArr.length; ++i) {
+            if(!longArr[offset + i].equals(shortArr[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static <T> boolean startsWith(T[] longArr, T[] shortArr) {
+        return startsWith(longArr, shortArr, 0);
+    }
+
+    public static <T> boolean endsWith(T[] longArr, T[] shortArr) {
+        return startsWith(longArr, shortArr, longArr.length - shortArr.length);
+    }
+
     public static <T> boolean isNullOrEmpty(T[] arr) {
         return arr == null || arr.length == 0;
     }

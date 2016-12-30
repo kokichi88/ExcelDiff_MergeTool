@@ -1,6 +1,7 @@
 package diff;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -111,11 +112,17 @@ public class ArrayDiff {
 
         // perform a real diff
         diffs = diff_map(arr1, arr2);
-        return null;
+        if (diffs == null) {
+            // No acceptable result.
+            diffs = new LinkedList<Diff<T>>();
+            diffs.add(new Diff(Operation.REMOVED, arr1));
+            diffs.add(new Diff(Operation.ADDED, arr2));
+        }
+        return diffs;
     }
 
     public <T> int diff_commonPrefix(T[] arr1, T[] arr2) {
-        int n = Math.min(arr1.length, arr1.length);
+        int n = Math.min(arr1.length, arr2.length);
         for (int i = 0; i < n; i++) {
             if(!arr1[i].equals(arr2[i])) {
                 return i;
@@ -138,13 +145,14 @@ public class ArrayDiff {
     }
 
     public <T> void diff_cleanupMerge(LinkedList<Diff<T>> diffs) {
-        T[] dummyArray = (T[]) Array.newInstance(diffs.get(0).array.getClass().getComponentType(), 0);
+        Class clazz = Object.class;
+        T[] dummyArray = (T[]) Array.newInstance(clazz, 0);
         diffs.add(new Diff(Operation.UNCHANGED, dummyArray));  // Add a dummy entry at the end.
         ListIterator<Diff<T>> pointer = diffs.listIterator();
         int count_delete = 0;
         int count_insert = 0;
-        T[] arr_delete = (T[]) Array.newInstance(diffs.get(0).array.getClass().getComponentType(), 0);
-        T[] arr_insert = (T[]) Array.newInstance(diffs.get(0).array.getClass().getComponentType(), 0);
+        T[] arr_delete = (T[]) Array.newInstance(clazz, 0);
+        T[] arr_insert = (T[]) Array.newInstance(clazz, 0);
         Diff<T> thisDiff = pointer.next();
         Diff<T> prevEqual = null;
         int commonlength;
@@ -188,7 +196,7 @@ public class ArrayDiff {
                                             Arrays.copyOfRange(arr_insert, 0, commonlength)));
                                 }
                                 arr_insert = Arrays.copyOfRange(arr_insert, commonlength, arr_insert.length);
-                                arr_delete = Arrays.copyOfRange(arr_delete, commonlength, arr_insert.length);
+                                arr_delete = Arrays.copyOfRange(arr_delete, commonlength, arr_delete.length);
                             }
                             // Factor out any common suffixies.
                             commonlength = diff_commonSuffix(arr_insert, arr_delete);
@@ -220,8 +228,8 @@ public class ArrayDiff {
                     }
                     count_insert = 0;
                     count_delete = 0;
-                    arr_delete = (T[]) Array.newInstance(diffs.get(0).array.getClass().getComponentType(), 0);
-                    arr_insert = (T[]) Array.newInstance(diffs.get(0).array.getClass().getComponentType(), 0);
+                    arr_delete = (T[]) Array.newInstance(clazz, 0);
+                    arr_insert = (T[]) Array.newInstance(clazz, 0);
                     prevEqual = thisDiff;
                     break;
             }
@@ -249,12 +257,12 @@ public class ArrayDiff {
             if (prevDiff.operation == Operation.UNCHANGED &&
                     nextDiff.operation == Operation.UNCHANGED) {
                 // This is a single edit surrounded by equalities.
-                if (thisDiff.text.endsWith(prevDiff.text)) {
+                if (ArrayUtils.endsWith(thisDiff.array, prevDiff.array)) {
                     // Shift the edit over the previous equality.
-                    thisDiff.text = prevDiff.text
-                            + thisDiff.text.substring(0, thisDiff.text.length()
-                            - prevDiff.text.length());
-                    nextDiff.text = prevDiff.text + nextDiff.text;
+                    thisDiff.array = (T[])ArrayUtils.concat(prevDiff.array,
+                                    Arrays.copyOfRange(thisDiff.array, 0,
+                                    thisDiff.array.length - prevDiff.array.length));
+                    nextDiff.array = ArrayUtils.concat(prevDiff.array, nextDiff.array);
                     pointer.previous(); // Walk past nextDiff.
                     pointer.previous(); // Walk past thisDiff.
                     pointer.previous(); // Walk past prevDiff.
@@ -263,11 +271,11 @@ public class ArrayDiff {
                     thisDiff = pointer.next(); // Walk past nextDiff.
                     nextDiff = pointer.hasNext() ? pointer.next() : null;
                     changes = true;
-                } else if (thisDiff.text.startsWith(nextDiff.text)) {
+                } else if (ArrayUtils.startsWith(thisDiff.array, nextDiff.array)) {
                     // Shift the edit over the next equality.
-                    prevDiff.text += nextDiff.text;
-                    thisDiff.text = thisDiff.text.substring(nextDiff.text.length())
-                            + nextDiff.text;
+                    prevDiff.array = ArrayUtils.concat(prevDiff.array, nextDiff.array);
+                    thisDiff.array = (T[])ArrayUtils.concat(Arrays.copyOfRange(thisDiff.array, nextDiff.array.length,
+                            thisDiff.array.length), nextDiff.array);
                     pointer.remove(); // Delete nextDiff.
                     nextDiff = pointer.hasNext() ? pointer.next() : null;
                     changes = true;
@@ -355,7 +363,7 @@ public class ArrayDiff {
         long ms_end = System.currentTimeMillis() + (long) (Diff_Timeout * 1000);
         int arr1_length = arr1.length;
         int arr2_length = arr2.length;
-        int max_d = arr1_length + arr2_length;
+        int max_d = arr1_length + arr2_length - 1;
         boolean doubleEnd = Diff_DualThreshold * 2 < max_d;
         List<Set<Long>> v_map1 = new ArrayList<Set<Long>>();
         List<Set<Long>> v_map2 = new ArrayList<Set<Long>>();
