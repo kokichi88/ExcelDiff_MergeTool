@@ -1,5 +1,8 @@
 package view;
 
+import bus.cmd.CmdId;
+import bus.controller.BusManager;
+import bus.cmd.ChangeTabCommand;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -19,7 +22,8 @@ public class MainApplication extends Application {
     final Logger logger = LoggerFactory.getLogger(MainApplication.class);
     @Override
     public void start(Stage stage) throws Exception {
-        logger.info("get here");
+        initCmds();
+
         Parent root = FXMLLoader.load(getClass().getResource("FirstUIFx.fxml"));
         stage.setTitle("None File- Excel Compare");
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -27,8 +31,18 @@ public class MainApplication extends Application {
         int height =(int) (gd.getDisplayMode().getHeight() * ratio);
         stage.setScene(new Scene(root, width, height));
         stage.show();
+
+
     }
 
+    private void initCmds() {
+        try {
+            BusManager.getInstance().registerCommand(CmdId.CHANGE_TAB, ChangeTabCommand.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
     public static void main(String[] args) {
         launch(args);
     }

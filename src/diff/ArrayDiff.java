@@ -359,7 +359,7 @@ public class ArrayDiff {
         }
     }
 
-    private <T> LinkedList<Diff<T>> diff_map(T[] arr1, T[] arr2) {
+    public <T> LinkedList<Diff<T>> diff_map(T[] arr1, T[] arr2) {
         long ms_end = System.currentTimeMillis() + (long) (Diff_Timeout * 1000);
         int arr1_length = arr1.length;
         int arr2_length = arr2.length;
@@ -479,7 +479,7 @@ public class ArrayDiff {
         return null;
     }
 
-    protected <T> LinkedList<Diff<T>> diff_path1(List<Set<Long>> v_map,
+    public <T> LinkedList<Diff<T>> diff_path1(List<Set<Long>> v_map,
                                           T[] arr1, T[] arr2) {
         LinkedList<Diff<T>> path = new LinkedList<Diff<T>>();
         int x = arr1.length;
@@ -525,7 +525,7 @@ public class ArrayDiff {
         return path;
     }
 
-    protected <T> LinkedList<Diff<T>> diff_path2(List<Set<Long>> v_map,
+    public <T> LinkedList<Diff<T>> diff_path2(List<Set<Long>> v_map,
                                           T[] arr1, T[] arr2) {
         LinkedList<Diff<T>> path = new LinkedList<Diff<T>>();
         int x = arr1.length;
@@ -574,7 +574,7 @@ public class ArrayDiff {
         return path;
     }
 
-    protected long diff_footprint(int x, int y) {
+    public long diff_footprint(int x, int y) {
         // The maximum size for a long is 9,223,372,036,854,775,807
         // The maximum size for an int is 2,147,483,647
         // Two ints fit nicely in one long.
