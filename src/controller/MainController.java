@@ -16,6 +16,7 @@ import javafx.util.Callback;
 import kk.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import services.Services;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,13 +38,10 @@ public class MainController implements Initializable {
     public static int NEW_FILE_INDEX = 1;
 
     @FXML
-    private TableView<ObservableList<String>> oldFileTableView;
-
-    @FXML
     private TabPane oldTabPane;
 
     @FXML
-    private TextField outputContent;
+    private Label outputContent;
 
     private WorkbookWrapper[] workbooks = new WorkbookWrapper[MAX_FILE];
     private TableView<ObservableList<String>>[] tableViews = new TableView[MAX_FILE];
@@ -75,16 +73,13 @@ public class MainController implements Initializable {
         }
     }
 
-    private void loadTableView(int index, int sheet) {
-
-    }
-
     private void initTabPane() {
         assert oldTabPane != null : "can't load fx:id=oldTabPane";
         tabPanes[OLD_FILE_INDEX] = oldTabPane;
         for(int i = 0; i < tabPanes.length; ++i) {
             if(tabPanes[i] != null && workbooks[i] != null) {
                 TabPane tabPane = tabPanes[i];
+                tabPane.setId(String.valueOf(i));
                 tabPane.getTabs().clear();
                 List<String> sheetsName = workbooks[i].getSheetsName();
                 for(int j = 0; j < sheetsName.size(); ++j) {
@@ -92,22 +87,16 @@ public class MainController implements Initializable {
                     tab.setId(String.valueOf(j));
                     tabPane.getTabs().add(tab);
                 }
-                if(tabPane.getTabs().size() > 0) {
-                    ChangeTabMessage msg = new ChangeTabMessage(workbooks, tabPanes, tableViews,
-                            tabPane.getTabs().get(0), tabPane.getTabs().get(0));
-                    BusManager.getInstance().dispatch(msg);
-                }
+
                 tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
                     @Override
                     public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
                         ChangeTabMessage msg = new ChangeTabMessage(workbooks, tabPanes, tableViews, newValue, oldValue);
-                        BusManager.getInstance().dispatch(msg);
+                        Services.getService(BusManager.class).dispatch(msg);
                     }
                 });
             }
         }
-
-
     }
 
 }

@@ -5,4 +5,5 @@ package bus.cmd;
  */
 public class CmdId {
     public static int CHANGE_TAB = 0;
+    public static int LOAD_WORKBOOK = 1;
 }

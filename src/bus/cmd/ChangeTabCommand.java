@@ -29,10 +29,9 @@ public class ChangeTabCommand implements ICommand {
         Tab oldValue = (Tab)message.params.get("oldValue");
 
         int sheet = Integer.parseInt(newValue.getId());
-        WorkbookWrapper wb = tabPanes[MainController.OLD_FILE_INDEX] == newValue.getTabPane() ?
-                workbooks[MainController.OLD_FILE_INDEX] : workbooks[MainController.NEW_FILE_INDEX];
-        TableView tableView = tabPanes[MainController.OLD_FILE_INDEX] == newValue.getTabPane() ?
-                tableViews[MainController.OLD_FILE_INDEX] : tableViews[MainController.NEW_FILE_INDEX];
+        int fileId = Integer.parseInt(newValue.getTabPane().getId());
+        WorkbookWrapper wb = workbooks[fileId];
+        TableView tableView = tableViews[fileId];
         List<String> columns = wb.getColumnsAtSheet(sheet);
         tableView.getColumns().clear();
         for(int i= 0 ; i < columns.size(); i++) {

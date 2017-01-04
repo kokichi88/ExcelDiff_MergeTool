@@ -8,18 +8,11 @@ import java.util.*;
  * Created by apple on 1/4/17.
  */
 public class BusManager {
-    private static BusManager instance;
 
     private Queue<Message> queues = new ArrayDeque<Message>();
     private Map<Integer, ArrayList<ICommand>> mapCommands = new HashMap<Integer, ArrayList<ICommand>>();
-    public static BusManager getInstance() {
-        if(instance == null) {
-            instance = new BusManager();
-        }
-        return instance;
-    }
 
-    private BusManager() {
+    public BusManager() {
 
     }
 

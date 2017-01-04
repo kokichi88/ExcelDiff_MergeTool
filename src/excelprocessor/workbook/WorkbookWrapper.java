@@ -31,17 +31,15 @@ public class WorkbookWrapper {
         handlers.put(Cell.CELL_TYPE_ERROR, new ErrorCellHandler());
     }
     private Workbook workbook;
+    private String path;
     private List<Integer> maxColumnsPerSheet = new ArrayList<Integer>();
     private List<ArrayList<String>> columnsPerSheet = new ArrayList<ArrayList<String>>();
     private List<String> sheetsName = new ArrayList<String>();
-    public WorkbookWrapper(Workbook workbook) {
-        this.workbook = workbook;
-        init();
-    }
 
     public WorkbookWrapper(String path) throws IOException {
         FileInputStream file = new FileInputStream(new File(path));
         this.workbook = new XSSFWorkbook(file);
+        this.path = path;
         init();
     }
 

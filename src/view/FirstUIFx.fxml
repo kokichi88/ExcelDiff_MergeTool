@@ -43,14 +43,14 @@
               <items>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
-                        <Label layoutY="6.0" text="Old file" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <Label layoutY="6.0" text=" Old file" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                         <Separator layoutX="7.0" layoutY="25.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0" />
                         <TabPane fx:id="oldTabPane" layoutX="-1.0" layoutY="21.0" side="BOTTOM" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="22.0" />
                      </children>
                   </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                      <children>
-                        <Label text="New File" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <Label text=" New File" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                         <Separator prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0" />
                      </children>
                   </AnchorPane>
@@ -58,9 +58,9 @@
             </SplitPane>
          </children>
     </AnchorPane>
-      <HBox prefHeight="13.0" prefWidth="640.0">
+      <HBox prefHeight="30.0">
          <children>
-            <Label prefHeight="36.0" prefWidth="43.0" text="Output" textAlignment="CENTER" />
+            <Label prefHeight="36.0" text=" Output" textAlignment="CENTER" />
             <Separator orientation="VERTICAL" prefHeight="200.0">
                <opaqueInsets>
                   <Insets />
@@ -69,7 +69,7 @@
                   <Insets left="10.0" />
                </HBox.margin>
             </Separator>
-            <Label layoutX="10.0" layoutY="10.0" prefHeight="33.0" text="dawdawdawdaw">
+            <Label fx:id="outputContent" layoutX="10.0" layoutY="10.0" prefHeight="33.0" text="dawdawdawdaw">
                <HBox.margin>
                   <Insets left="10.0" />
                </HBox.margin>
