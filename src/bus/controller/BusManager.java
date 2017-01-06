@@ -1,7 +1,6 @@
 package bus.controller;
 
-import bus.data.Message;
-
+import bus.data.ISignal;
 import java.util.*;
 
 /**
@@ -9,20 +8,21 @@ import java.util.*;
  */
 public class BusManager {
 
-    private Queue<Message> queues = new ArrayDeque<Message>();
-    private Map<Integer, ArrayList<ICommand>> mapCommands = new HashMap<Integer, ArrayList<ICommand>>();
+    private Queue<ISignal> queues = new ArrayDeque<ISignal>();
+    private Map<Class, ArrayList<ICommand>> mapCommands = new HashMap<Class, ArrayList<ICommand>>();
+    private int numCommandExecuted = 0;
 
     public BusManager() {
 
     }
 
-    public <T extends ICommand> void registerCommand(int cmdId, Class<T> clazz) throws Exception {
+    public <S extends ISignal, T extends ICommand> void register(Class<S> signal, Class<T> clazz) throws Exception {
             ArrayList<ICommand> cmds;
-            if(mapCommands.containsKey(cmdId)) {
-                cmds = mapCommands.get(cmdId);
+            if(mapCommands.containsKey(signal)) {
+                cmds = mapCommands.get(signal);
             }else {
                 cmds = new ArrayList<ICommand>();
-                mapCommands.put(cmdId, cmds);
+                mapCommands.put(signal, cmds);
             }
             for(ICommand cmd : cmds) {
                 if( cmd.getClass() == clazz) {
@@ -33,21 +33,32 @@ public class BusManager {
     }
 
 
-    public void dispatch(Message msg) {
-        queues.offer(msg);
+    public void dispatch(ISignal signal) {
+        queues.offer(signal);
         process();
     }
 
-    private void process() {
-        while(queues.size() > 0) {
-            Message msg = queues.poll();
-            List<ICommand> cmds = mapCommands.get(msg.cmdId);
-            if(cmds != null) {
-                for(ICommand cmd : cmds)
-                    cmd.execute(msg);
-            }else {
-                throw new IllegalArgumentException("unsupported message cmdId " + msg.cmdId);
+    public void process() {
+        try {
+            while(queues.size() > 0) {
+                ISignal signal = queues.poll();
+                List<ICommand> cmds = mapCommands.get(signal.getClass());
+                if(cmds != null) {
+                    for(ICommand cmd : cmds) {
+                        cmd.execute(signal);
+                        ++numCommandExecuted;
+                    }
+                }else {
+                    throw new Exception("unsupported signal " + signal.getClass());
+                }
             }
+        }catch (Exception e) {
+            System.out.print("error while execute command :" + e.getMessage());
         }
+
+    }
+
+    public int getNumCommandExecuted() {
+        return numCommandExecuted;
     }
 }

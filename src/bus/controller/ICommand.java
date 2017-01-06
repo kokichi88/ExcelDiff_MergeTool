@@ -1,10 +1,11 @@
 package bus.controller;
 
-import bus.data.Message;
+import bus.data.ISignal;
 
 /**
  * Created by apple on 1/4/17.
  */
-public interface ICommand {
-    public void execute(Message message);
+public interface ICommand<S extends ISignal> {
+    public void execute(S signal) throws Exception;
+
 }

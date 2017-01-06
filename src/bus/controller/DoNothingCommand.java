@@ -1,13 +1,14 @@
 package bus.controller;
 
-import bus.data.Message;
+
+import bus.data.EmptySignal;
 
 /**
  * Created by apple on 1/4/17.
  */
-public class DoNothingCommand implements ICommand {
+public class DoNothingCommand implements ICommand<EmptySignal> {
     @Override
-    public void execute(Message message) {
+    public void execute(EmptySignal signal) {
         // test purpose
     }
 }

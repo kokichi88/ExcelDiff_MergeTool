@@ -10,8 +10,6 @@ public class Services {
     private static Map<Class, Object> services = new HashMap<Class, Object>();
 
     public static <T> void setService(T instance) {
-        if(services.containsKey(instance.getClass()))
-            throw new IllegalArgumentException("can't have more than once service " + instance + " at the same time");
         services.put(instance.getClass(), instance);
     }
 

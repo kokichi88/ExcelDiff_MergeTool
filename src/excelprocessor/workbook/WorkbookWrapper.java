@@ -69,6 +69,13 @@ public class WorkbookWrapper {
         }
     }
 
+    public int getDefaultSheetIndex() {
+        if(workbook.getNumberOfSheets() > 0)
+            return 0;
+        else
+            return -1;
+    }
+
     public List<String> getColumnsAtSheet(int index) {
         return columnsPerSheet.get(index);
     }

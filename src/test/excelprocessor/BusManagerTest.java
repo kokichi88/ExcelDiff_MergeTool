@@ -1,66 +1,44 @@
 package test.excelprocessor;
 
 import bus.controller.DoNothingCommand;
-import bus.data.Message;
+import bus.data.EmptySignal;
 import bus.controller.BusManager;
 import junit.framework.TestCase;
-import services.Services;
 
 /**
  * Created by apple on 1/4/17.
  */
 public class BusManagerTest extends TestCase {
-
+    BusManager busManager;
     @Override
     protected void setUp() throws Exception {
-        BusManager busManager = new BusManager();
-        Services.setService(busManager);
+        busManager = new BusManager();
     }
 
-    public void testUnsupportedCmdId() {
+    public void testUnsupportedSignal() {
+        busManager.dispatch(new EmptySignal());
+        assertEquals("testUnsupportedSignal", 0, busManager.getNumCommandExecuted());
+    }
+
+    public void testDuplicateCommandForSameSignal() {
         boolean ret = false;
         try {
-            Services.getService(BusManager.class).dispatch(new Message(0,null));
+            busManager.register(EmptySignal.class, DoNothingCommand.class);
+            busManager.register(EmptySignal.class, DoNothingCommand.class);
         }catch (Exception e) {
             ret = true;
         }
-        assertTrue("testUnsupportedCmdId", ret);
-
-    }
-
-    public void testSupportedCmdId() {
-        boolean ret = true;
-        try {
-            Services.getService(BusManager.class).registerCommand(0, DoNothingCommand.class);
-            Services.getService(BusManager.class).dispatch(new Message(0,null));
-        }catch (Exception e) {
-            ret = false;
-        }
-        assertTrue("testSupportedCmdId", ret);
-
-    }
-
-    public void testDuplicateHandlerForSameId() {
-        boolean ret = false;
-        try {
-            Services.getService(BusManager.class).registerCommand(0, DoNothingCommand.class);
-            Services.getService(BusManager.class).registerCommand(0, DoNothingCommand.class);
-        }catch (Exception e) {
-            ret = true;
-        }
-        assertTrue("testDuplicateHandlerForSameId", ret);
+        assertTrue("testDuplicateCommandForSameSignal", ret);
 
     }
 
     public void testNormalCase() {
-        boolean ret = true;
         try {
-            Services.getService(BusManager.class).registerCommand(0, DoNothingCommand.class);
-            Services.getService(BusManager.class).dispatch(new Message(0, null));
+            busManager.register(EmptySignal.class, DoNothingCommand.class);
+            busManager.dispatch(new EmptySignal());
         }catch (Exception e) {
-            ret = false;
         }
-        assertTrue("testNormalCase", ret);
+        assertEquals("testNormalCase", 1, busManager.getNumCommandExecuted());
 
     }
 

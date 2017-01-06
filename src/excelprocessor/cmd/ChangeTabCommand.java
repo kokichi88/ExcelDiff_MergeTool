@@ -1,14 +1,12 @@
-package bus.cmd;
+package excelprocessor.cmd;
 
 import bus.controller.ICommand;
-import bus.data.Message;
-import controller.MainController;
+import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
@@ -18,15 +16,14 @@ import java.util.List;
 /**
  * Created by apple on 1/4/17.
  */
-public class ChangeTabCommand implements ICommand {
+public class ChangeTabCommand implements ICommand<ChangeTabSignal> {
 
     @Override
-    public void execute(Message message) {
-        TabPane[] tabPanes = (TabPane[])message.params.get("tabPanes");
-        WorkbookWrapper[] workbooks = (WorkbookWrapper[])message.params.get("workbooks");
-        TableView[] tableViews = (TableView[])message.params.get("tableViews");
-        Tab newValue = (Tab)message.params.get("newValue");
-        Tab oldValue = (Tab)message.params.get("oldValue");
+    public void execute(ChangeTabSignal signal) throws Exception {
+        WorkbookWrapper[] workbooks = signal.workbookWrappers;
+        TableView[] tableViews = signal.tableViews;
+        Tab newValue = signal.newValue;
+        Tab oldValue = signal.oldValue;
 
         int sheet = Integer.parseInt(newValue.getId());
         int fileId = Integer.parseInt(newValue.getTabPane().getId());
