@@ -1,5 +1,7 @@
 package excelprocessor.workbook;
 
+import data.CellDataWrapper;
+import data.CellValue;
 import excelprocessor.cellhandler.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -7,7 +9,6 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.util.CellAddress;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -35,6 +36,9 @@ public class WorkbookWrapper {
     private List<Integer> maxColumnsPerSheet = new ArrayList<Integer>();
     private List<ArrayList<String>> columnsPerSheet = new ArrayList<ArrayList<String>>();
     private List<String> sheetsName = new ArrayList<String>();
+    private List<ArrayList<CellDataWrapper>> cellDataWrappersPerSheet;
+    private List<ArrayList<String>> stringValuesPerSheet;
+    private List<ObservableList<ObservableList<CellValue<String>>>> rowDatasPerSheet;
 
     public WorkbookWrapper(String path) throws IOException {
         FileInputStream file = new FileInputStream(new File(path));
@@ -44,23 +48,48 @@ public class WorkbookWrapper {
     }
 
     private void init() {
-        buildMaxColumnsData();
+        buildCachedData();
     }
 
 
-    private void buildMaxColumnsData() {
+    private void buildCachedData() {
         int numOfSheets = workbook.getNumberOfSheets();
+        stringValuesPerSheet = new ArrayList<ArrayList<String>>();
+        cellDataWrappersPerSheet = new ArrayList<ArrayList<CellDataWrapper>>();
+        rowDatasPerSheet = new ArrayList<ObservableList<ObservableList<CellValue<String>>>>();
+        String default1stCell = "      ";
         for(int i = 0; i < numOfSheets; ++i) {
             Sheet sheet = workbook.getSheetAt(i);
             Iterator<Row> rowIterator = sheet.iterator();
             int maxColumn = -1;
+            ArrayList<String> stringValues = new ArrayList<String>();
+            ArrayList<CellDataWrapper> cellDataWrappers = new ArrayList<CellDataWrapper>();
+            ObservableList<ObservableList<CellValue<String>>> rowDatas = FXCollections.observableArrayList();
+            int countRow = 0;
             while(rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 int lastColumn = row.getLastCellNum() - 1;
                 maxColumn = maxColumn < lastColumn ? lastColumn : maxColumn;
+                Iterator<Cell> cellIterator = row.cellIterator();
+                ObservableList<CellValue<String>> record = FXCollections.observableArrayList();
+//                record.add(String.valueOf(countRow));
+                while(cellIterator.hasNext()) {
+                    Cell cell = cellIterator.next();
+                    Object value = handlers.get(cell.getCellType()).getValue(cell);
+                    String strVal = value.toString();
+                    record.add(new CellValue<String>(strVal));
+                    stringValues.add(strVal);
+                    cellDataWrappers.add(new CellDataWrapper(value, cell.getAddress()));
+                }
+                rowDatas.add(record);
+                countRow++;
             }
+            stringValuesPerSheet.add(stringValues);
+            cellDataWrappersPerSheet.add(cellDataWrappers);
+            rowDatasPerSheet.add(rowDatas);
             maxColumnsPerSheet.add(maxColumn);
             ArrayList<String> columnsName = new ArrayList<String>();
+//            columnsName.add(default1stCell);
             for(int j = 0; j < maxColumn; ++j) {
                 columnsName.add(CellReference.convertNumToColString(j));
             }
@@ -76,8 +105,13 @@ public class WorkbookWrapper {
             return -1;
     }
 
-    public List<String> getColumnsAtSheet(int index) {
-        return columnsPerSheet.get(index);
+    public String[] getDataForDiffAtSheet(int sheet) {
+        ArrayList<String> datas = stringValuesPerSheet.get(sheet);
+        return datas.toArray(new String[]{});
+    }
+
+    public List<String> getColumnsAtSheet(int sheet) {
+        return columnsPerSheet.get(sheet);
     }
 
     public List<String> getSheetsName() {
@@ -85,49 +119,10 @@ public class WorkbookWrapper {
     }
 
 
-    public ObservableList<ObservableList<String>> getRenderDataAtSheet (int index) {
-        Sheet sheet = workbook.getSheetAt(index);
-        ObservableList<ObservableList<String>> ret = FXCollections.observableArrayList();
-        Iterator<Row> rowIterator = sheet.iterator();
-        while(rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            Iterator<Cell> cellIterator = row.cellIterator();
-            ObservableList<String> record = FXCollections.observableArrayList();
-            while(cellIterator.hasNext()) {
-                Cell cell = cellIterator.next();
-                Object value = handlers.get(cell.getCellType()).getValue(cell);
-                record.add(value.toString());
-            }
-            ret.add(record);
-        }
-        return ret;
+    public ObservableList<ObservableList<CellValue<String>>> getRenderDataAtSheet (int sheet) {
+        return rowDatasPerSheet.get(sheet);
     }
 
-    public ArrayCellData getArrayCellValuesAtSheet(int index) {
-        Sheet sheet = workbook.getSheetAt(index);
-        List<String> renderCellValues = new LinkedList<String>();
-        List<Object> rawCellValues = new LinkedList<Object>();
-        List<Integer> listCellTypes = new ArrayList<Integer>();
-        List<CellAddress> listCellAddress = new ArrayList<CellAddress>();
-        Iterator<Row> rowIterator = sheet.iterator();
-        while(rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            Iterator<Cell> cellIterator = row.cellIterator();
-            while(cellIterator.hasNext()) {
-                Cell cell = cellIterator.next();
-                Object value = handlers.get(cell.getCellType()).getValue(cell);
-                renderCellValues.add(value.toString());
-                rawCellValues.add(value);
-                listCellTypes.add(cell.getCellType());
-                listCellAddress.add(cell.getAddress());
-            }
-        }
-
-        ArrayCellData ret = new ArrayCellData(renderCellValues.toArray(new String[]{}),
-                rawCellValues.toArray(),
-                listCellTypes, listCellAddress);
-        return ret;
-    }
 
     public void setCellValue(Cell cell, Object value) {
         handlers.get(cell.getCellType()).setValue(cell, value);

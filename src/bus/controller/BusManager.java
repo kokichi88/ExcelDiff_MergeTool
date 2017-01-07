@@ -53,7 +53,7 @@ public class BusManager {
                 }
             }
         }catch (Exception e) {
-            System.out.print("error while execute command :" + e.getMessage());
+            e.printStackTrace();
         }
 
     }

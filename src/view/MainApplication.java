@@ -1,6 +1,7 @@
 package view;
 
 import excelprocessor.cmd.LoadWorkbookCommand;
+import excelprocessor.cmd.UpdateTabPaneCmd;
 import excelprocessor.cmd.WriteLogCmd;
 import bus.controller.BusManager;
 import excelprocessor.cmd.ChangeTabCommand;
@@ -8,6 +9,7 @@ import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.LoadWorkbookSignal;
 import excelprocessor.signals.PushLogSignal;
 import controller.MainController;
+import excelprocessor.signals.UpdateTabPaneSignal;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -16,11 +18,13 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import kk.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import services.Services;
 
 import java.awt.*;
+import java.io.File;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
@@ -51,15 +55,24 @@ public class MainApplication extends Application {
         stage.show();
 
         initController(loader);
+
+        Services.getService(BusManager.class).dispatch(
+                new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
+                        + File.separator + "HeroConfig.xlsx", Services.getService(MainController.class)));
+
+        Services.getService(BusManager.class).dispatch(
+                new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
+                        + File.separator + "HeroConfig2.xlsx", Services.getService(MainController.class)));
     }
 
     private void initCmds() {
         BusManager busManager = new BusManager();
         Services.setService(busManager);
         try {
-            busManager.registerCommand(ChangeTabSignal.class, ChangeTabCommand.class);
-            busManager.registerCommand(LoadWorkbookSignal.class, LoadWorkbookCommand.class);
-            busManager.registerCommand(PushLogSignal.class, WriteLogCmd.class);
+            busManager.register(ChangeTabSignal.class, ChangeTabCommand.class);
+            busManager.register(LoadWorkbookSignal.class, LoadWorkbookCommand.class);
+            busManager.register(PushLogSignal.class, WriteLogCmd.class);
+            busManager.register(UpdateTabPaneSignal.class, UpdateTabPaneCmd.class);
         } catch (Exception e) {
             Services.getService(Logger.class).error(e.getMessage());
         }

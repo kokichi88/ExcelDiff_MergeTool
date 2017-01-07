@@ -32,13 +32,13 @@ public class ExcelProcessorTest extends TestCase {
             WorkbookWrapper w1 = new WorkbookWrapper(filePath1);
             WorkbookWrapper w2 = new WorkbookWrapper(filePath2);
 
-            String[] arr1 = w1.getArrayCellValuesAtSheet(0).getCellRenderValues();
-            String[] arr2 = w2.getArrayCellValuesAtSheet(0).getCellRenderValues();
+            String[] arr1 = w1.getDataForDiffAtSheet(1);
+            String[] arr2 = w2.getDataForDiffAtSheet(1);
 
             ArrayDiff diffProcessor = new ArrayDiff();
             List<Diff<String>> diffs = diffProcessor.diff_main(arr1, arr2);
 
-            logger.info("diff result {}", diffs);
+//            logger.info("diff result {}", diffs);
 
 
         }catch (Exception e) {

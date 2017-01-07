@@ -1,6 +1,7 @@
 package controller;
 
 import bus.controller.BusManager;
+import data.CellValue;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.LoadWorkbookSignal;
 import excelprocessor.workbook.WorkbookWrapper;
@@ -34,10 +35,13 @@ public class MainController implements Initializable {
     private TabPane oldTabPane;
 
     @FXML
+    private TabPane newTabPane;
+
+    @FXML
     private Label outputContent;
 
     private WorkbookWrapper[] workbooks = new WorkbookWrapper[MAX_FILE];
-    private TableView<ObservableList<String>>[] tableViews = new TableView[MAX_FILE];
+    private TableView<ObservableList<CellValue<String>>>[] tableViews = new TableView[MAX_FILE];
     private TabPane[] tabPanes = new TabPane[MAX_FILE];
 
     @Override
@@ -45,16 +49,52 @@ public class MainController implements Initializable {
         initTableView();
         initTabPane();
         display = outputContent;
-
-        Services.getService(BusManager.class).dispatch(
-                new LoadWorkbookSignal(OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "HeroConfig.xlsx", this));
-
     }
 
     public void setWorkbooks(int index, WorkbookWrapper wb) {
         assert index < MAX_FILE : "index must be lesser than " + MAX_FILE;
         workbooks[index] = wb;
+    }
+
+    public int getDefaultSheetIndexOf(int index) {
+        WorkbookWrapper wb = workbooks[index];
+        return wb.getDefaultSheetIndex();
+    }
+
+    private void initTableView() {
+        for(int i = 0; i < tableViews.length; ++i) {
+            tableViews[i] = new TableView<ObservableList<CellValue<String>>>();
+        }
+    }
+
+    public TableView getTableView(int index) {
+        return tableViews[index];
+    }
+
+    private void initTabPane() {
+        assert oldTabPane == null : "can't load fx:id=oldTabPane";
+        assert newTabPane == null : "can't load fx:id=newTabPane";
+        tabPanes[OLD_FILE_INDEX] = oldTabPane;
+        tabPanes[NEW_FILE_INDEX] = newTabPane;
+        for(int i = 0; i < tabPanes.length; ++i) {
+            if(tabPanes[i] != null) {
+                TabPane tabPane = tabPanes[i];
+                tabPane.setId(String.valueOf(i));
+                tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
+                        if(newValue != null && newValue.getTabPane() != null) {
+                            int fileId = Integer.parseInt(newValue.getTabPane().getId());
+                            WorkbookWrapper wb = workbooks[fileId];
+                            TableView tableView = tableViews[fileId];
+                            int sheet = Integer.parseInt(newValue.getId());
+                            ChangeTabSignal msg = new ChangeTabSignal(wb, tableView, newValue, oldValue, sheet);
+                            Services.getService(BusManager.class).dispatch(msg);
+                        }
+                    }
+                });
+            }
+        }
     }
 
     public void updateTabPane(int index, WorkbookWrapper wb) {
@@ -69,29 +109,8 @@ public class MainController implements Initializable {
         }
     }
 
-
-    private void initTableView() {
-        for(int i = 0; i < tableViews.length; ++i) {
-            tableViews[i] = new TableView<ObservableList<String>>();
-        }
-    }
-
-    private void initTabPane() {
-        assert oldTabPane != null : "can't load fx:id=oldTabPane";
-        tabPanes[OLD_FILE_INDEX] = oldTabPane;
-        for(int i = 0; i < tabPanes.length; ++i) {
-            if(tabPanes[i] != null) {
-                TabPane tabPane = tabPanes[i];
-                tabPane.setId(String.valueOf(i));
-                tabPane.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Tab> observable, Tab oldValue, Tab newValue) {
-                        ChangeTabSignal msg = new ChangeTabSignal(workbooks, tableViews, newValue, oldValue);
-                        Services.getService(BusManager.class).dispatch(msg);
-                    }
-                });
-            }
-        }
+    public TabPane getTabPane(int index) {
+        return tabPanes[index];
     }
 
 }
