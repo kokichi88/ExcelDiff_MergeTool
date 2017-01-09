@@ -1,5 +1,6 @@
 package test.excelprocessor;
 
+import controller.MainController;
 import diff.ArrayDiff;
 import diff.Diff;
 import excelprocessor.workbook.WorkbookWrapper;
@@ -9,6 +10,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.applet.Main;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -29,8 +32,8 @@ public class ExcelProcessorTest extends TestCase {
             String filePath2 = Utils.getCurrentWorkingDir() + File.separator + "resources"
                     + File.separator + "HeroConfig2.xlsx";
 
-            WorkbookWrapper w1 = new WorkbookWrapper(filePath1);
-            WorkbookWrapper w2 = new WorkbookWrapper(filePath2);
+            WorkbookWrapper w1 = new WorkbookWrapper(filePath1, MainController.OLD_FILE_INDEX);
+            WorkbookWrapper w2 = new WorkbookWrapper(filePath2, MainController.NEW_FILE_INDEX);
 
             String[] arr1 = w1.getDataForDiffAtSheet(1);
             String[] arr2 = w2.getDataForDiffAtSheet(1);

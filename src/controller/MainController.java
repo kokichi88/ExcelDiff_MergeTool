@@ -3,6 +3,7 @@ package controller;
 import bus.controller.BusManager;
 import data.CellValue;
 import excelprocessor.signals.ChangeTabSignal;
+import excelprocessor.signals.DiffSignal;
 import excelprocessor.signals.LoadWorkbookSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.value.ChangeListener;
@@ -18,6 +19,7 @@ import services.Services;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -43,17 +45,36 @@ public class MainController implements Initializable {
     private WorkbookWrapper[] workbooks = new WorkbookWrapper[MAX_FILE];
     private TableView<ObservableList<CellValue<String>>>[] tableViews = new TableView[MAX_FILE];
     private TabPane[] tabPanes = new TabPane[MAX_FILE];
-
+    private int[] selectedSheets = new int[MAX_FILE];
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initTableView();
         initTabPane();
+        Arrays.fill(selectedSheets, -1);
         display = outputContent;
+    }
+
+    public void setSelectedSheet(int index, int sheet) {
+        selectedSheets[index] = sheet;
+
+        int value = -1;
+        for(int i = 0; i < selectedSheets.length; ++i) {
+            if(value == -1 && i == 0)
+                value = selectedSheets[i];
+            else if(value == -1 || value != selectedSheets[i])
+                return;
+        }
+
+        Services.getService(BusManager.class).dispatch(new DiffSignal(this));
     }
 
     public void setWorkbooks(int index, WorkbookWrapper wb) {
         assert index < MAX_FILE : "index must be lesser than " + MAX_FILE;
         workbooks[index] = wb;
+    }
+
+    public WorkbookWrapper getWorkbookWrapper(int index) {
+        return workbooks[index];
     }
 
     public int getDefaultSheetIndexOf(int index) {

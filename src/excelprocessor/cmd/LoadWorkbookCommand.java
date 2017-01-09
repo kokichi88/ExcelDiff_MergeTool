@@ -29,7 +29,7 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
         final String path = signal.path;
         final int index = signal.index;
         final MainController controller = signal.controller;
-        OpenWorkbookService service = new OpenWorkbookService(path);
+        OpenWorkbookService service = new OpenWorkbookService(path, index);
         final BusManager busManager = Services.getService(BusManager.class);
         busManager.dispatch(new PushLogSignal("Start loading file " + path));
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -56,9 +56,11 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
 
     public static class OpenWorkbookService extends Service<WorkbookWrapper> {
         private String path;
+        private int id;
 
-        public OpenWorkbookService(String path) {
+        public OpenWorkbookService(String path, int id) {
             this.path = path;
+            this.id = id;
         }
 
         @Override
@@ -66,7 +68,7 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
             return new Task<WorkbookWrapper>() {
                 @Override
                 protected WorkbookWrapper call() throws Exception {
-                    WorkbookWrapper wb = new WorkbookWrapper(path);
+                    WorkbookWrapper wb = new WorkbookWrapper(path, id);
                     return wb;
                 }
             };

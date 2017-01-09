@@ -33,6 +33,7 @@ public class WorkbookWrapper {
     }
     private Workbook workbook;
     private String path;
+    private int id;
     private List<Integer> maxColumnsPerSheet = new ArrayList<Integer>();
     private List<ArrayList<String>> columnsPerSheet = new ArrayList<ArrayList<String>>();
     private List<String> sheetsName = new ArrayList<String>();
@@ -40,17 +41,21 @@ public class WorkbookWrapper {
     private List<ArrayList<String>> stringValuesPerSheet;
     private List<ObservableList<ObservableList<CellValue<String>>>> rowDatasPerSheet;
 
-    public WorkbookWrapper(String path) throws IOException {
+    public WorkbookWrapper(String path, int id) throws IOException {
         FileInputStream file = new FileInputStream(new File(path));
         this.workbook = new XSSFWorkbook(file);
         this.path = path;
+        this.id = id;
         init();
+    }
+
+    public int getId() {
+        return id;
     }
 
     private void init() {
         buildCachedData();
     }
-
 
     private void buildCachedData() {
         int numOfSheets = workbook.getNumberOfSheets();

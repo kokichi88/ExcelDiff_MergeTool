@@ -31,7 +31,7 @@ public class CellValue<T> {
 
     public CellValue(T value, CellState state) {
         this(value);
-
+        setCellState(state);
     }
 
     public T getValue() {

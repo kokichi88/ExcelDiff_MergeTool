@@ -1,6 +1,7 @@
 package excelprocessor.cmd;
 
 import bus.controller.ICommand;
+import controller.MainController;
 import data.CellValue;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.workbook.WorkbookWrapper;
@@ -10,6 +11,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
 import javafx.util.Callback;
+import services.Services;
 
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +37,7 @@ public class ChangeTabCommand implements ICommand<ChangeTabSignal> {
             col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ObservableList<CellValue<String>>, CellValue<String>>, ObservableValue<CellValue<String>>>() {
                 @Override
                 public ObservableValue<CellValue<String>> call(TableColumn.CellDataFeatures<ObservableList<CellValue<String>>, CellValue<String>> param) {
-                    return new SimpleObjectProperty(param.getValue().get(j).getValue());
+                    return new SimpleObjectProperty(param.getValue().get(j));
                 }
             });
             col.setCellFactory(new Callback<TableColumn<ObservableList<CellValue<String>>, CellValue<String>>, TableCell<ObservableList<CellValue<String>>, CellValue<String>>>() {
@@ -50,6 +52,8 @@ public class ChangeTabCommand implements ICommand<ChangeTabSignal> {
         tableView.setItems(records);
         oldValue.setContent(null);
         newValue.setContent(tableView);
+        MainController controller = Services.getService(MainController.class);
+        controller.setSelectedSheet(wb.getId(), sheet);
     }
 
 }

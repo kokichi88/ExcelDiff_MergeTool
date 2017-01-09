@@ -1,15 +1,9 @@
 package view;
 
-import excelprocessor.cmd.LoadWorkbookCommand;
-import excelprocessor.cmd.UpdateTabPaneCmd;
-import excelprocessor.cmd.WriteLogCmd;
+import excelprocessor.cmd.*;
 import bus.controller.BusManager;
-import excelprocessor.cmd.ChangeTabCommand;
-import excelprocessor.signals.ChangeTabSignal;
-import excelprocessor.signals.LoadWorkbookSignal;
-import excelprocessor.signals.PushLogSignal;
+import excelprocessor.signals.*;
 import controller.MainController;
-import excelprocessor.signals.UpdateTabPaneSignal;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -58,11 +52,11 @@ public class MainApplication extends Application {
 
         Services.getService(BusManager.class).dispatch(
                 new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "HeroConfig.xlsx", Services.getService(MainController.class)));
+                        + File.separator + "TestAccount1.xlsx", Services.getService(MainController.class)));
 
         Services.getService(BusManager.class).dispatch(
                 new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "HeroConfig2.xlsx", Services.getService(MainController.class)));
+                        + File.separator + "TestAccount2.xlsx", Services.getService(MainController.class)));
     }
 
     private void initCmds() {
@@ -73,6 +67,7 @@ public class MainApplication extends Application {
             busManager.register(LoadWorkbookSignal.class, LoadWorkbookCommand.class);
             busManager.register(PushLogSignal.class, WriteLogCmd.class);
             busManager.register(UpdateTabPaneSignal.class, UpdateTabPaneCmd.class);
+            busManager.register(DiffSignal.class, DiffCommand.class);
         } catch (Exception e) {
             Services.getService(Logger.class).error(e.getMessage());
         }
@@ -90,7 +85,7 @@ public class MainApplication extends Application {
     }
 
     private void initLogger() {
-        Services.setService(LoggerFactory.getLogger(MainApplication.class));
+        Services.bind(Logger.class, LoggerFactory.getLogger(MainApplication.class));
     }
 
     public static void main(String[] args) {
