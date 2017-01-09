@@ -13,6 +13,10 @@ public class Services {
         services.put(instance.getClass(), instance);
     }
 
+    public static <T> void bind(Class<T> clazz, T instance) {
+        services.put(clazz, instance);
+    }
+
     public static <T> void unsetService(Class<T> clazz) {
         services.remove(clazz);
     }
