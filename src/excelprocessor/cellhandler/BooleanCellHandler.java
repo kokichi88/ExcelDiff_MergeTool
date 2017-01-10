@@ -13,6 +13,12 @@ public class BooleanCellHandler implements ICellHandler<Boolean> {
     }
 
     @Override
+    public String stringValueOf(Cell cell) {
+        return getValue(cell).toString();
+    }
+
+
+    @Override
     public void setValue(Cell cell, Boolean value) {
         cell.setCellValue(value);
     }

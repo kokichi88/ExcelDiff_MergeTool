@@ -1,9 +1,12 @@
 package controller;
 
 import bus.controller.BusManager;
+import com.sun.javafx.scene.control.skin.TableHeaderRow;
 import data.CellValue;
+import data.Record;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.DiffSignal;
+import excelprocessor.signals.PushLogSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -40,7 +43,7 @@ public class MainController implements Initializable {
     private Label outputContent;
 
     private WorkbookWrapper[] workbooks = new WorkbookWrapper[MAX_FILE];
-    private TableView<ObservableList<CellValue<String>>>[] tableViews = new TableView[MAX_FILE];
+    private TableView<Record<String>>[] tableViews = new TableView[MAX_FILE];
     private TabPane[] tabPanes = new TabPane[MAX_FILE];
     private int[] selectedSheets = new int[MAX_FILE];
     @Override
@@ -53,16 +56,25 @@ public class MainController implements Initializable {
 
     public void setSelectedSheet(int index, int sheet) {
         selectedSheets[index] = sheet;
-
         int value = -1;
         for(int i = 0; i < selectedSheets.length; ++i) {
             if(value == -1 && i == 0)
                 value = selectedSheets[i];
-            else if(value == -1 || value != selectedSheets[i])
+            else if(value == -1 || value != selectedSheets[i]) {
+                if(value > -1 && selectedSheets[i] > -1) {
+                    String msg = "Cant compare two different sheets id: " +
+                            workbooks[OLD_FILE_INDEX].getSheetsName().get(selectedSheets[OLD_FILE_INDEX]) + "  -  " +
+                            workbooks[NEW_FILE_INDEX].getSheetsName().get(selectedSheets[NEW_FILE_INDEX]) ;
+                    Services.get(BusManager.class).dispatch(new PushLogSignal(msg));
+                }
                 return;
+            }
         }
-
-        Services.get(BusManager.class).dispatch(new DiffSignal(this));
+        String msg = "Compare two sheets id: " +
+                workbooks[OLD_FILE_INDEX].getSheetsName().get(selectedSheets[OLD_FILE_INDEX]) + "  -  " +
+                workbooks[NEW_FILE_INDEX].getSheetsName().get(selectedSheets[NEW_FILE_INDEX]) ;
+        Services.get(BusManager.class).dispatch(new PushLogSignal(msg));
+        Services.get(BusManager.class).dispatch(new DiffSignal(this, sheet));
     }
 
     public void setWorkbooks(int index, WorkbookWrapper wb) {
@@ -81,7 +93,22 @@ public class MainController implements Initializable {
 
     private void initTableView() {
         for(int i = 0; i < tableViews.length; ++i) {
-            tableViews[i] = new TableView<ObservableList<CellValue<String>>>();
+            final int j = i;
+            tableViews[j] = new TableView<Record<String>>();
+            tableViews[j].widthProperty().addListener(new ChangeListener<Number>()
+            {
+                @Override
+                public void changed(ObservableValue<? extends Number> source, Number oldWidth, Number newWidth)
+                {
+                    final TableHeaderRow header = (TableHeaderRow) tableViews[j].lookup("TableHeaderRow");
+                    header.reorderingProperty().addListener(new ChangeListener<Boolean>() {
+                        @Override
+                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                            header.setReordering(false);
+                        }
+                    });
+                }
+            });
         }
     }
 

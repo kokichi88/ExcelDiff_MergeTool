@@ -12,6 +12,11 @@ public class StringCellHandler implements ICellHandler<String> {
     }
 
     @Override
+    public String stringValueOf(Cell cell) {
+        return getValue(cell);
+    }
+
+    @Override
     public void setValue(Cell cell, String value) {
         cell.setCellValue(value);
     }

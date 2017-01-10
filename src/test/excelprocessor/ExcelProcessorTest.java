@@ -38,7 +38,7 @@ public class ExcelProcessorTest extends TestCase {
             String[] arr1 = w1.getDataForDiffAtSheet(1);
             String[] arr2 = w2.getDataForDiffAtSheet(1);
 
-            ArrayDiff diffProcessor = new ArrayDiff();
+            ArrayDiff diffProcessor = new ArrayDiff(String.class);
             List<Diff<String>> diffs = diffProcessor.diff_main(arr1, arr2);
 
 //            logger.info("diff result {}", diffs);

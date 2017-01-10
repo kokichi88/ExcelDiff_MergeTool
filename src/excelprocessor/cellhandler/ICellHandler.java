@@ -7,5 +7,6 @@ import org.apache.poi.ss.usermodel.Cell;
  */
 public interface ICellHandler<T> {
     T getValue(Cell cell);
+    String stringValueOf(Cell cell);
     void setValue(Cell cell, T value);
 }

@@ -12,7 +12,7 @@ public class ArrayDiffTest extends TestCase {
     private ArrayDiff arrayDiff;
     @Override
     protected void setUp() throws Exception {
-        arrayDiff = new ArrayDiff();
+        arrayDiff = new ArrayDiff<String>(String.class);
     }
 
     public void test_starts_with() throws Exception {

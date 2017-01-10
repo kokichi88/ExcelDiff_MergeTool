@@ -50,8 +50,8 @@ public class CellValue<T> {
         cellStateProperty.setValue(state);
     }
 
-    public static <T> TableCell<ObservableList<CellValue<String>>, CellValue<T>> createTableCell(final Class<T> clazz){
-        final TextFieldTableCell<ObservableList<CellValue<String>>, CellValue<T>> cell = new TextFieldTableCell<ObservableList<CellValue<String>>, CellValue<T>>();
+    public static <T> TableCell<Record<String>, CellValue<T>> createTableCell(final Class<T> clazz){
+        final TextFieldTableCell<Record<String>, CellValue<T>> cell = new TextFieldTableCell<Record<String>, CellValue<T>>();
         cell.setConverter(new StringConverter<CellValue<T>>() {
             @Override
             public String toString(CellValue<T> item) {
@@ -93,7 +93,7 @@ public class CellValue<T> {
         return cell;
     }
 
-    public static <T> void setCellStyle(TextFieldTableCell<ObservableList<CellValue<String>>, CellValue<T>> cell, CellState newValue) {
+    public static <T> void setCellStyle(TextFieldTableCell<Record<String>, CellValue<T>> cell, CellState newValue) {
         if(newValue == null) {
             cell.setStyle("");
         }else {

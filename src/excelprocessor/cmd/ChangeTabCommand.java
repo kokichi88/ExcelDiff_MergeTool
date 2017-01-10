@@ -3,6 +3,7 @@ package excelprocessor.cmd;
 import bus.controller.ICommand;
 import controller.MainController;
 import data.CellValue;
+import data.Record;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -31,22 +32,23 @@ public class ChangeTabCommand implements ICommand<ChangeTabSignal> {
         tableView.getColumns().clear();
         for(int i= 0 ; i < columns.size(); i++) {
             final int j = i;
-            TableColumn<ObservableList<CellValue<String>>, CellValue<String>> col = new TableColumn<ObservableList<CellValue<String>>, CellValue<String>>(columns.get(i));
-            col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ObservableList<CellValue<String>>, CellValue<String>>, ObservableValue<CellValue<String>>>() {
+            TableColumn<Record<String>, CellValue<String>> col = new TableColumn<Record<String>, CellValue<String>>(columns.get(i));
+            col.setSortable(false);
+            col.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Record<String>, CellValue<String>>, ObservableValue<CellValue<String>>>() {
                 @Override
-                public ObservableValue<CellValue<String>> call(TableColumn.CellDataFeatures<ObservableList<CellValue<String>>, CellValue<String>> param) {
-                    return new SimpleObjectProperty(param.getValue().get(j));
+                public ObservableValue<CellValue<String>> call(TableColumn.CellDataFeatures<Record<String>, CellValue<String>> param) {
+                    return new SimpleObjectProperty(param.getValue().cells.get(j));
                 }
             });
-            col.setCellFactory(new Callback<TableColumn<ObservableList<CellValue<String>>, CellValue<String>>, TableCell<ObservableList<CellValue<String>>, CellValue<String>>>() {
+            col.setCellFactory(new Callback<TableColumn<Record<String>, CellValue<String>>, TableCell<Record<String>, CellValue<String>>>() {
                 @Override
-                public TableCell<ObservableList<CellValue<String>>, CellValue<String>> call(TableColumn<ObservableList<CellValue<String>>, CellValue<String>> param) {
+                public TableCell<Record<String>, CellValue<String>> call(TableColumn<Record<String>, CellValue<String>> param) {
                     return CellValue.createTableCell(String.class);
                 }
             });
             tableView.getColumns().add(col);
         }
-        ObservableList<ObservableList<CellValue<String>>> records = wb.getRenderDataAtSheet(sheet);
+        ObservableList<Record<String>> records = wb.getRenderDataAtSheet(sheet);
         tableView.setItems(records);
         oldValue.setContent(null);
         newValue.setContent(tableView);

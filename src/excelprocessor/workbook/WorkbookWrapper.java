@@ -1,7 +1,10 @@
 package excelprocessor.workbook;
 
+import com.sun.javafx.geom.Vec2d;
 import data.CellDataWrapper;
 import data.CellValue;
+import data.Record;
+import diff.ArrayUtils;
 import excelprocessor.cellhandler.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,7 +42,7 @@ public class WorkbookWrapper {
     private List<String> sheetsName = new ArrayList<String>();
     private List<ArrayList<CellDataWrapper>> cellDataWrappersPerSheet;
     private List<ArrayList<String>> stringValuesPerSheet;
-    private List<ObservableList<ObservableList<CellValue<String>>>> rowDatasPerSheet;
+    private List<ObservableList<Record<String>>> rowDatasPerSheet;
 
     public WorkbookWrapper(String path, int id) throws IOException {
         FileInputStream file = new FileInputStream(new File(path));
@@ -57,45 +60,73 @@ public class WorkbookWrapper {
         buildCachedData();
     }
 
+    public int[] getMaxRowAndColumnAtSheet(int index) {
+
+        Sheet sheet = workbook.getSheetAt(index);
+        Iterator<Row> rowIterator = sheet.iterator();
+        int[] ret = new int[2];
+        while(rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            int lastCellNum = row.getLastCellNum();
+            ret[1] = lastCellNum > ret[1] ? lastCellNum : ret[1];
+            ret[0]++;
+        }
+        return ret;
+    }
+
+    private void fill(ObservableList<CellValue<String>> cells, int size) {
+        for(int i = 0; i < size; ++i) {
+            cells.add(new CellValue<String>(""));
+        }
+    }
+
+    private void fill(ArrayList<String> strVals, int size) {
+        for(int i = 0; i < size; ++i) {
+            strVals.add("");
+        }
+    }
+
     private void buildCachedData() {
         int numOfSheets = workbook.getNumberOfSheets();
         stringValuesPerSheet = new ArrayList<ArrayList<String>>();
         cellDataWrappersPerSheet = new ArrayList<ArrayList<CellDataWrapper>>();
-        rowDatasPerSheet = new ArrayList<ObservableList<ObservableList<CellValue<String>>>>();
+        rowDatasPerSheet = new ArrayList<ObservableList<Record<String>>>();
         String default1stCell = "      ";
         for(int i = 0; i < numOfSheets; ++i) {
             Sheet sheet = workbook.getSheetAt(i);
             Iterator<Row> rowIterator = sheet.iterator();
-            int maxColumn = -1;
+            int[] maxRowAndCol = getMaxRowAndColumnAtSheet(i);
             ArrayList<String> stringValues = new ArrayList<String>();
             ArrayList<CellDataWrapper> cellDataWrappers = new ArrayList<CellDataWrapper>();
-            ObservableList<ObservableList<CellValue<String>>> rowDatas = FXCollections.observableArrayList();
+            ObservableList<Record<String>> rowDatas = FXCollections.observableArrayList();
             int countRow = 0;
+            fill(stringValues, maxRowAndCol[0] * maxRowAndCol[1]);
             while(rowIterator.hasNext()) {
                 Row row = rowIterator.next();
-                int lastColumn = row.getLastCellNum() - 1;
-                maxColumn = maxColumn < lastColumn ? lastColumn : maxColumn;
+                int lastColumn = row.getLastCellNum();
                 Iterator<Cell> cellIterator = row.cellIterator();
-                ObservableList<CellValue<String>> record = FXCollections.observableArrayList();
+                ObservableList<CellValue<String>> cells = FXCollections.observableArrayList();
 //                record.add(String.valueOf(countRow));
+                fill(cells, maxRowAndCol[1]);
                 while(cellIterator.hasNext()) {
                     Cell cell = cellIterator.next();
+                    int colIndex = cell.getAddress().getColumn();
                     Object value = handlers.get(cell.getCellType()).getValue(cell);
-                    String strVal = value.toString();
-                    record.add(new CellValue<String>(strVal));
-                    stringValues.add(strVal);
+                    String strVal = handlers.get(cell.getCellType()).stringValueOf(cell);
+                    cells.set(colIndex, new CellValue<String>(strVal));
+                    stringValues.set(countRow * maxRowAndCol[1] + colIndex, strVal);
                     cellDataWrappers.add(new CellDataWrapper(value, cell.getAddress()));
                 }
-                rowDatas.add(record);
+                rowDatas.add(new Record<String>(cells));
                 countRow++;
             }
             stringValuesPerSheet.add(stringValues);
             cellDataWrappersPerSheet.add(cellDataWrappers);
             rowDatasPerSheet.add(rowDatas);
-            maxColumnsPerSheet.add(maxColumn);
+            maxColumnsPerSheet.add(maxRowAndCol[1]);
             ArrayList<String> columnsName = new ArrayList<String>();
 //            columnsName.add(default1stCell);
-            for(int j = 0; j < maxColumn; ++j) {
+            for(int j = 0; j < maxRowAndCol[1]; ++j) {
                 columnsName.add(CellReference.convertNumToColString(j));
             }
             columnsPerSheet.add(columnsName);
@@ -124,7 +155,7 @@ public class WorkbookWrapper {
     }
 
 
-    public ObservableList<ObservableList<CellValue<String>>> getRenderDataAtSheet (int sheet) {
+    public ObservableList<Record<String>> getRenderDataAtSheet (int sheet) {
         return rowDatasPerSheet.get(sheet);
     }
 

@@ -12,6 +12,11 @@ public class ErrorCellHandler implements ICellHandler<Byte> {
     }
 
     @Override
+    public String stringValueOf(Cell cell) {
+        return getValue(cell).toString();
+    }
+
+    @Override
     public void setValue(Cell cell, Byte value) {
         cell.setCellValue(value);
     }

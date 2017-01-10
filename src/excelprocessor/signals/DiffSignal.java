@@ -9,8 +9,10 @@ import controller.MainController;
 public class DiffSignal implements ISignal {
 
     public MainController controller;
+    public int sheet;
 
-    public DiffSignal(MainController controller) {
+    public DiffSignal(MainController controller, int sheet) {
         this.controller = controller;
+        this.sheet = sheet;
     }
 }

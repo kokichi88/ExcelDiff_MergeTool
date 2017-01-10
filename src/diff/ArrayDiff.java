@@ -7,7 +7,7 @@ import java.util.*;
 /**
  * Created by apple on 12/29/16.
  */
-public class ArrayDiff {
+public class ArrayDiff<T> {
     /**
      * Number of seconds to map a diff before giving up (0 for infinity).
      */
@@ -26,7 +26,13 @@ public class ArrayDiff {
         REMOVED, ADDED, UNCHANGED
     }
 
-    public <T> LinkedList<Diff<T>> diff_main(T[] arr1, T[] arr2) {
+    private Class<T> clazz;
+
+    public ArrayDiff(Class<T> clazz) {
+        this.clazz = clazz;
+    }
+
+    public LinkedList<Diff<T>> diff_main(T[] arr1, T[] arr2) {
         LinkedList<Diff<T>> diffs = new LinkedList<Diff<T>>();
 
         if(ArrayUtils.isNullOrEmpty(arr1) && ArrayUtils.isNullOrEmpty(arr2)) {
@@ -70,7 +76,7 @@ public class ArrayDiff {
         return diffs;
     }
 
-    public <T> LinkedList<Diff<T>> diff_compute(T[] arr1, T[] arr2) {
+    public LinkedList<Diff<T>> diff_compute(T[] arr1, T[] arr2) {
         LinkedList<Diff<T>> diffs = new LinkedList<Diff<T>>();
 
         if(arr1.length == 0) {
@@ -121,7 +127,7 @@ public class ArrayDiff {
         return diffs;
     }
 
-    public <T> int diff_commonPrefix(T[] arr1, T[] arr2) {
+    public int diff_commonPrefix(T[] arr1, T[] arr2) {
         int n = Math.min(arr1.length, arr2.length);
         for (int i = 0; i < n; i++) {
             if(!arr1[i].equals(arr2[i])) {
@@ -132,7 +138,7 @@ public class ArrayDiff {
         return n;
     }
 
-    public <T> int diff_commonSuffix(T[] arr1, T[] arr2) {
+    public int diff_commonSuffix(T[] arr1, T[] arr2) {
         int arr1_length = arr1.length;
         int arr2_length = arr2.length;
         int n = Math.min(arr1_length, arr2_length);
@@ -144,8 +150,7 @@ public class ArrayDiff {
         return n;
     }
 
-    public <T> void diff_cleanupMerge(LinkedList<Diff<T>> diffs) {
-        Class clazz = Object.class;
+    public void diff_cleanupMerge(LinkedList<Diff<T>> diffs) {
         T[] dummyArray = (T[]) Array.newInstance(clazz, 0);
         diffs.add(new Diff(Operation.UNCHANGED, dummyArray));  // Add a dummy entry at the end.
         ListIterator<Diff<T>> pointer = diffs.listIterator();
@@ -291,7 +296,7 @@ public class ArrayDiff {
         }
     }
 
-    public <T> List<T[]> diff_halfMatch(T[] arr1, T[] arr2) {
+    public List<T[]> diff_halfMatch(T[] arr1, T[] arr2) {
         T[] longArr = arr1.length > arr2.length ? arr1 : arr2;
         T[] shortArr = arr1.length > arr2.length ? arr2 : arr1;
         if(longArr.length < 10 || shortArr.length < 1) {
@@ -324,7 +329,7 @@ public class ArrayDiff {
         }
     }
 
-    public <T> List<T[]> diff_halfMatchI(T[] longArr, T[] shortArr, int i) {
+    public List<T[]> diff_halfMatchI(T[] longArr, T[] shortArr, int i) {
         T[] seed = Arrays.copyOfRange(longArr, i, i + longArr.length/4);
         int j = -1;
         T[] best_common = null;
@@ -359,7 +364,7 @@ public class ArrayDiff {
         }
     }
 
-    public <T> LinkedList<Diff<T>> diff_map(T[] arr1, T[] arr2) {
+    public LinkedList<Diff<T>> diff_map(T[] arr1, T[] arr2) {
         long ms_end = System.currentTimeMillis() + (long) (Diff_Timeout * 1000);
         int arr1_length = arr1.length;
         int arr2_length = arr2.length;
@@ -479,7 +484,7 @@ public class ArrayDiff {
         return null;
     }
 
-    public <T> LinkedList<Diff<T>> diff_path1(List<Set<Long>> v_map,
+    public LinkedList<Diff<T>> diff_path1(List<Set<Long>> v_map,
                                           T[] arr1, T[] arr2) {
         LinkedList<Diff<T>> path = new LinkedList<Diff<T>>();
         int x = arr1.length;
@@ -525,7 +530,7 @@ public class ArrayDiff {
         return path;
     }
 
-    public <T> LinkedList<Diff<T>> diff_path2(List<Set<Long>> v_map,
+    public LinkedList<Diff<T>> diff_path2(List<Set<Long>> v_map,
                                           T[] arr1, T[] arr2) {
         LinkedList<Diff<T>> path = new LinkedList<Diff<T>>();
         int x = arr1.length;
