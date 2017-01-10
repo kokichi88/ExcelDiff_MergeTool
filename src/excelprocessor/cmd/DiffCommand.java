@@ -27,6 +27,6 @@ public class DiffCommand implements ICommand<DiffSignal> {
         ArrayDiff diffProcessor = new ArrayDiff();
         LinkedList<Diff<String>> diffs = diffProcessor.diff_main(oldData, newData);
 
-        Services.getService(Logger.class).info("DiffCommand {}",diffs.toString());
+        Services.get(Logger.class).info("DiffCommand {}",diffs.toString());
     }
 }

@@ -50,18 +50,18 @@ public class MainApplication extends Application {
 
         initController(loader);
 
-        Services.getService(BusManager.class).dispatch(
+        Services.get(BusManager.class).dispatch(
                 new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "TestAccount1.xlsx", Services.getService(MainController.class)));
+                        + File.separator + "TestAccount1.xlsx", Services.get(MainController.class)));
 
-        Services.getService(BusManager.class).dispatch(
+        Services.get(BusManager.class).dispatch(
                 new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "TestAccount2.xlsx", Services.getService(MainController.class)));
+                        + File.separator + "TestAccount2.xlsx", Services.get(MainController.class)));
     }
 
     private void initCmds() {
         BusManager busManager = new BusManager();
-        Services.setService(busManager);
+        Services.set(busManager);
         try {
             busManager.register(ChangeTabSignal.class, ChangeTabCommand.class);
             busManager.register(LoadWorkbookSignal.class, LoadWorkbookCommand.class);
@@ -69,19 +69,19 @@ public class MainApplication extends Application {
             busManager.register(UpdateTabPaneSignal.class, UpdateTabPaneCmd.class);
             busManager.register(DiffSignal.class, DiffCommand.class);
         } catch (Exception e) {
-            Services.getService(Logger.class).error(e.getMessage());
+            Services.get(Logger.class).error(e.getMessage());
         }
 
     }
 
     private void initExecutor() {
         ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(5);
-        Services.setService(executor);
+        Services.set(executor);
     }
 
     private void initController(FXMLLoader loader) {
         MainController controller = loader.getController();
-        Services.setService(controller);
+        Services.set(controller);
     }
 
     private void initLogger() {

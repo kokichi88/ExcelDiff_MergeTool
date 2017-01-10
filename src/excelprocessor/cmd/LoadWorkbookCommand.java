@@ -17,8 +17,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import services.Services;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 /**
  * Created by apple on 1/4/17.
  */
@@ -30,7 +28,7 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
         final int index = signal.index;
         final MainController controller = signal.controller;
         OpenWorkbookService service = new OpenWorkbookService(path, index);
-        final BusManager busManager = Services.getService(BusManager.class);
+        final BusManager busManager = Services.get(BusManager.class);
         busManager.dispatch(new PushLogSignal("Start loading file " + path));
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
@@ -46,7 +44,7 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
                 if(sheet > -1) {
                     Tab tab = tabPane.getTabs().get(sheet);
                     ChangeTabSignal msg = new ChangeTabSignal(wb, tableView, tab, tab, sheet);
-                    Services.getService(BusManager.class).dispatch(msg);
+                    Services.get(BusManager.class).dispatch(msg);
                 }
             }
         });

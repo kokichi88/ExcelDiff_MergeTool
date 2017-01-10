@@ -23,7 +23,7 @@ public class WriteLogCmd implements ICommand<PushLogSignal> {
                 }
             });
         }else {
-            Services.getService(Logger.class).warn("display haven't been initialized yet");
+            Services.get(Logger.class).warn("display haven't been initialized yet");
         }
     }
 }

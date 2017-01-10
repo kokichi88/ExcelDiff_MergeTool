@@ -6,7 +6,6 @@ import data.CellValue;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
@@ -14,7 +13,6 @@ import javafx.util.Callback;
 import services.Services;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by apple on 1/4/17.
@@ -52,7 +50,7 @@ public class ChangeTabCommand implements ICommand<ChangeTabSignal> {
         tableView.setItems(records);
         oldValue.setContent(null);
         newValue.setContent(tableView);
-        MainController controller = Services.getService(MainController.class);
+        MainController controller = Services.get(MainController.class);
         controller.setSelectedSheet(wb.getId(), sheet);
     }
 

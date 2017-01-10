@@ -4,7 +4,6 @@ import bus.controller.BusManager;
 import data.CellValue;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.DiffSignal;
-import excelprocessor.signals.LoadWorkbookSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -12,12 +11,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import kk.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import services.Services;
 
-import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -65,7 +62,7 @@ public class MainController implements Initializable {
                 return;
         }
 
-        Services.getService(BusManager.class).dispatch(new DiffSignal(this));
+        Services.get(BusManager.class).dispatch(new DiffSignal(this));
     }
 
     public void setWorkbooks(int index, WorkbookWrapper wb) {
@@ -110,7 +107,7 @@ public class MainController implements Initializable {
                             TableView tableView = tableViews[fileId];
                             int sheet = Integer.parseInt(newValue.getId());
                             ChangeTabSignal msg = new ChangeTabSignal(wb, tableView, newValue, oldValue, sheet);
-                            Services.getService(BusManager.class).dispatch(msg);
+                            Services.get(BusManager.class).dispatch(msg);
                         }
                     }
                 });
