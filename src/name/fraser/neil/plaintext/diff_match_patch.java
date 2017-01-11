@@ -374,10 +374,10 @@ public class diff_match_patch {
         lineArray.add(line);
         lineHash.put(line, lineArray.size() - 1);
         chars.append(String.valueOf((char) (lineArray.size() - 1)));
-      }
-    }
-    return chars.toString();
-  }
+        }
+        }
+        return chars.toString();
+        }
 
 
   /**

@@ -58,11 +58,11 @@ public class ArrayDiffTest extends TestCase {
 
 
     public void testDiff_Diff_equals() throws Exception {
-        Diff diff_a = new Diff(ArrayDiff.Operation.ADDED, new Object[]{1,2,3,4});
-        Diff diff_b = new Diff(ArrayDiff.Operation.ADDED, new Object[]{1,2,3,4});
+        Diff diff_a = new Diff(ArrayDiff.Operation.INSERT, new Object[]{1,2,3,4});
+        Diff diff_b = new Diff(ArrayDiff.Operation.INSERT, new Object[]{1,2,3,4});
         assertEquals("Diff_equals: equals case. ", true, diff_a.equals(diff_b));
 
-        Diff diff_c = new Diff(ArrayDiff.Operation.ADDED, new Object[]{1,2,3});
+        Diff diff_c = new Diff(ArrayDiff.Operation.INSERT, new Object[]{1,2,3});
         assertEquals("Diff_equals: not equals case. ", false, diff_a.equals(diff_c));
 
 //        assertEquals("Diff_equals: equals case. ", false, diff_a.array.equals(diff_b.array));
@@ -167,112 +167,180 @@ public class ArrayDiffTest extends TestCase {
         assertEquals("diff_cleanupMerge: Null case.", diffList(), diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("c")));
         LinkedList<Diff<String>> diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("b")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("c")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("b")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("c")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: No change case.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("abc")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("abc")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Merge equalities.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("c")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("abc")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("abc")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Merge deletions.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("c")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("abc")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("abc")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Merge insertions.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("c")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("d")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("e")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("f")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("d")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("e")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("f")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("ac")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("bd")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("ef")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("ac")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("bd")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("ef")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Merge interweave.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("abc")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("dc")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("abc")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("dc")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("d")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("b")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("d")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Prefix and suffix detection.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("ba")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("ba")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("ab")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("ac")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("ab")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("ac")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Slide edit left.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("ab")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("ab")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("ca")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("ba")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("ca")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("ba")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Slide edit right.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("ac")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("x")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("ac")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("x")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("abc")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("acx")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("abc")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("acx")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Slide edit left recursive.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("x")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("ca")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("x")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("ca")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
         diffs2 = diffList();
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("xca")));
-        diffs2.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("cba")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("xca")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("cba")));
         arrayDiff.diff_cleanupMerge(diffs);
         assertEquals("diff_cleanupMerge: Slide edit right recursive.", diffs2, diffs);
+    }
+
+    public void test_diff_CleanupSemantic() {
+        LinkedList<Diff<String>> diffs = diffList();
+        arrayDiff.diff_cleanupSemantic(diffs);
+        assertEquals("diff_cleanupSemantic: Null case.", diffList(), diffs);
+
+        diffs = diffList();
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("cd")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("e")));
+        LinkedList<Diff<String>> diffs2 = diffList();
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("cd")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("e")));
+        arrayDiff.diff_cleanupSemantic(diffs);
+        assertEquals("diff_cleanupSemantic: No elimination.", diffs2, diffs);
+
+        diffs = diffList();
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("c")));
+        diffs2 = diffList();
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("abc")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
+        arrayDiff.diff_cleanupSemantic(diffs);
+        assertEquals("diff_cleanupSemantic: Simple elimination.", diffs2, diffs);
+
+        diffs = diffList();
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("ab")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("cd")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("e")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("f")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("g")));
+        diffs2 = diffList();
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("abcdef")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("cdfg")));
+        arrayDiff.diff_cleanupSemantic(diffs);
+        assertEquals("diff_cleanupSemantic: Backpass elimination.", diffs2, diffs);
+
+        diffs = diffList();
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("1")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("A")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("B")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("2")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("_")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("1")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("A")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("B")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("2")));
+        diffs2 = diffList();
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("AB_AB")));
+        diffs2.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("1A2_1A2")));
+        arrayDiff.diff_cleanupSemantic(diffs);
+        assertEquals("diff_cleanupSemantic: Multiple elimination.", diffs2, diffs);
+
+//        diffs = diffList();
+//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("The c")));
+//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("ow and the c")));
+//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("at.")));
+//        diffs2 = diffList();
+//        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("The ")));
+//        diffs2.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("cow and the ")));
+//        diffs2.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("cat.")));
+//        arrayDiff.diff_cleanupSemantic(diffs);
+//        assertEquals("diff_cleanupSemantic: Word boundaries.", diffs2, diffs);
     }
 
     public void test_diff_path() {
@@ -327,29 +395,29 @@ public class ArrayDiffTest extends TestCase {
             v_map.add(row_set);
         }
         LinkedList<Diff<String>> diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("W")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("A")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("1")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("B")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("2")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("X")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("C")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("3")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("D")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("W")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("A")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("1")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("B")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("2")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("X")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("C")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("3")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("D")));
         assertEquals("diff_path1: Single letters.", diffs, arrayDiff.diff_path1(v_map,
                 ArrayUtils.toArray("A1B2C3D"), ArrayUtils.toArray("W12X3")));
 
         // Trace a path from front to back.
         v_map.remove(v_map.size() - 1);
         diffs.clear();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("4")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("E")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("Y")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("5")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("F")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("6")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("G")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("Z")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("4")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("E")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("Y")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("5")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("F")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("6")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("G")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("Z")));
         assertEquals("diff_path2: Single letters.", diffs, arrayDiff.diff_path2(v_map,
                 ArrayUtils.toArray("4E5F6G"), ArrayUtils.toArray("4Y56Z")));
 
@@ -384,9 +452,9 @@ public class ArrayDiffTest extends TestCase {
             v_map.add(row_set);
         }
         diffs.clear();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("WX")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("AB")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("12")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("WX")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("AB")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("12")));
         assertEquals("diff_path1: Double letters.", diffs, arrayDiff.diff_path1(v_map,
                 ArrayUtils.toArray("AB12"), ArrayUtils.toArray("WX12")));
 
@@ -418,9 +486,9 @@ public class ArrayDiffTest extends TestCase {
             v_map.add(row_set);
         }
         diffs.clear();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("CD")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("34")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("YZ")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("CD")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("34")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("YZ")));
         assertEquals("diff_path2: Double letters.", diffs, arrayDiff.diff_path2(v_map,
                 ArrayUtils.toArray("CD34"), ArrayUtils.toArray("34YZ")));
     }
@@ -428,39 +496,39 @@ public class ArrayDiffTest extends TestCase {
     public void test_diff_main() {
         // Perform a trivial diff.
         LinkedList<Diff<String>> diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("abc")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("abc")));
         assertEquals("diff_main: Null case.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("abc"),
                 ArrayUtils.toArray("abc")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("ab")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("123")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("ab")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("123")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
         assertEquals("diff_main: Simple insertion.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("abc"),
                 ArrayUtils.toArray("ab123c")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("123")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("bc")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("123")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("bc")));
         assertEquals("diff_main: Simple deletion.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("a123bc"),
                 ArrayUtils.toArray("abc")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("123")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("456")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("123")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("456")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
         assertEquals("diff_main: Two insertions.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("abc"),
                 ArrayUtils.toArray("a123b456c")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("123")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("456")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("123")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("456")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
         assertEquals("diff_main: Two deletions.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("a123b456c"),
                 ArrayUtils.toArray("abc")));
 
@@ -469,56 +537,56 @@ public class ArrayDiffTest extends TestCase {
         arrayDiff.Diff_Timeout = 0;
         arrayDiff.Diff_DualThreshold = 32;
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
         assertEquals("diff_main: Simple case #1.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("a"),
                 ArrayUtils.toArray("b")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("Apple")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("Banana")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("s are a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("lso")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray(" fruit.")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("Apple")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("Banana")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("s are a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("lso")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray(" fruit.")));
         assertEquals("diff_main: Simple case #2.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("Apples are a fruit."),
                 ArrayUtils.toArray("Bananas are also fruit.")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("\u0680")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("x")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("\t")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("\000")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("\u0680")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("x")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("\t")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("\000")));
         assertEquals("diff_main: Simple case #3.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("ax\t"),
                 ArrayUtils.toArray("\u0680x\000")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("1")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("y")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("2")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("xab")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("1")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("y")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("2")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("xab")));
         assertEquals("diff_main: Overlap #1.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("1ayb2"),
                 ArrayUtils.toArray("abxab")));
 
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("xaxcx")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("abc")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("y")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("xaxcx")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("abc")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("y")));
         assertEquals("diff_main: Overlap #2.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("abcy"),
                 ArrayUtils.toArray("xaxcxabc")));
 
         // Sub-optimal double-ended diff.
         arrayDiff.Diff_DualThreshold = 2;
         diffs = diffList();
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("x")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("a")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("b")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("x")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.UNCHANGED, ArrayUtils.toArray("c")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.REMOVED, ArrayUtils.toArray("y")));
-        diffs.add(new Diff<String>(ArrayDiff.Operation.ADDED, ArrayUtils.toArray("xabc")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("x")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("b")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("x")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("y")));
+        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("xabc")));
         assertEquals("diff_main: Overlap #3.", diffs, arrayDiff.diff_main(ArrayUtils.toArray("abcy"),
                 ArrayUtils.toArray("xaxcxabc")));
     }

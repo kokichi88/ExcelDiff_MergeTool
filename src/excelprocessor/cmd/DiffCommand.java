@@ -9,7 +9,6 @@ import diff.Diff;
 import excelprocessor.signals.DiffSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Cell;
 import org.slf4j.Logger;
 import services.Services;
 
@@ -41,7 +40,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
 
         int newMaxCol = newWb.getMaxRowAndColumnAtSheet(sheet)[1];
         int oldMaxCol = newWb.getMaxRowAndColumnAtSheet(sheet)[1];
-
+        Services.get(Logger.class).info("Diff {}", diffs);
 //        processOldRecord(newWb, diffs, newRecords, sheet);
     }
 
@@ -55,7 +54,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
         for(Diff<String> diff : diffs) {
 //            if(countUnchanged >= totalCell) break;
             switch (diff.operation) {
-                case UNCHANGED:
+                case EQUAL:
                     for(int i = 0; i < diff.array.length; ++i) {
                         countUnchanged++;
                         int row = (countUnchanged - 1) / maxCol;
@@ -65,7 +64,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                     }
                     countRemoved = 0;
                     break;
-                case REMOVED:
+                case DELETE:
                     for(int i = 0; i < diff.array.length; ++i) {
                         countUnchanged++;
                         int row = (countUnchanged - 1) / maxCol;
@@ -75,21 +74,21 @@ public class DiffCommand implements ICommand<DiffSignal> {
                     }
                     countRemoved = diff.array.length;
                     break;
-                case ADDED:
-//                    for(int i = 0; i < diff.array.length; ++i) {
-//                        int dt = i - countRemoved;
-//                        int index;
-//                        if(dt > -1) {
-//                            countUnchanged++;
-//                            index = countUnchanged - 1;
-//                        }else {
-//                            index = countUnchanged + dt;
-//                        }
-//                        int row = index / maxCol;
-//                        int col = index % maxCol;
-//                        CellValue<String> cellValue = oldRecords.get(row).cells.get(col);
-//                        cellValue.setCellState(dt > -1? CellValue.CellState.ADDED : CellValue.CellState.MODIFIED);
-//                    }
+                case INSERT:
+                    for(int i = 0; i < diff.array.length; ++i) {
+                        int dt = i - countRemoved;
+                        int index;
+                        if(dt > -1) {
+                            countUnchanged++;
+                            index = countUnchanged - 1;
+                        }else {
+                            index = countUnchanged + dt;
+                        }
+                        int row = index / maxCol;
+                        int col = index % maxCol;
+                        CellValue<String> cellValue = oldRecords.get(row).cells.get(col);
+                        cellValue.setCellState(dt > -1? CellValue.CellState.ADDED : CellValue.CellState.MODIFIED);
+                    }
             }
         }
     }

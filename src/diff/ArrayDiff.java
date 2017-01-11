@@ -1,7 +1,6 @@
 package diff;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -23,7 +22,7 @@ public class ArrayDiff<T> {
     public short Diff_DualThreshold = 32;
 
     public enum Operation {
-        REMOVED, ADDED, UNCHANGED
+        DELETE, INSERT, EQUAL
     }
 
     private Class<T> clazz;
@@ -38,15 +37,15 @@ public class ArrayDiff<T> {
         if(ArrayUtils.isNullOrEmpty(arr1) && ArrayUtils.isNullOrEmpty(arr2)) {
             return diffs;
         }else if(ArrayUtils.isNullOrEmpty(arr1)) {
-            diffs.add(new Diff(Operation.ADDED, arr2));
+            diffs.add(new Diff(Operation.INSERT, arr2));
             return diffs;
         }else if(ArrayUtils.isNullOrEmpty(arr2)) {
-            diffs.add(new Diff(Operation.REMOVED, arr1));
+            diffs.add(new Diff(Operation.DELETE, arr1));
             return diffs;
         }
 
         if(Arrays.equals(arr1, arr2)) {
-            diffs.add(new Diff(Operation.UNCHANGED, arr1));
+            diffs.add(new Diff(Operation.EQUAL, arr1));
             return diffs;
         }
 
@@ -65,13 +64,12 @@ public class ArrayDiff<T> {
         diffs = diff_compute(arr1, arr2);
 
         if(commonPrefix.length > 0) {
-            diffs.addFirst(new Diff(Operation.UNCHANGED, commonPrefix));
+            diffs.addFirst(new Diff(Operation.EQUAL, commonPrefix));
         }
 
         if(commonSuffix.length > 0) {
-            diffs.addLast(new Diff(Operation.UNCHANGED, commonSuffix));
+            diffs.addLast(new Diff(Operation.EQUAL, commonSuffix));
         }
-
         diff_cleanupMerge(diffs);
         return diffs;
     }
@@ -80,12 +78,12 @@ public class ArrayDiff<T> {
         LinkedList<Diff<T>> diffs = new LinkedList<Diff<T>>();
 
         if(arr1.length == 0) {
-            diffs.add(new Diff(Operation.ADDED, arr2));
+            diffs.add(new Diff(Operation.INSERT, arr2));
             return diffs;
         }
 
         if(arr2.length == 0) {
-            diffs.add(new Diff(Operation.REMOVED, arr1));
+            diffs.add(new Diff(Operation.DELETE, arr1));
             return diffs;
         }
 
@@ -93,9 +91,9 @@ public class ArrayDiff<T> {
         T[] shortArr = arr1.length > arr2.length ? arr2 : arr1;
         int i = SearchUtils.kmp_search(longArr, shortArr, 0);
         if(i > -1) {
-            Operation op = arr1.length > arr2.length ? Operation.REMOVED : Operation.ADDED;
+            Operation op = arr1.length > arr2.length ? Operation.DELETE : Operation.INSERT;
             diffs.add(new Diff(op, Arrays.copyOf(longArr,i)));
-            diffs.add(new Diff(Operation.UNCHANGED, shortArr));
+            diffs.add(new Diff(Operation.EQUAL, shortArr));
             diffs.add(new Diff(op, Arrays.copyOfRange(longArr,i + shortArr.length, longArr.length)));
             return diffs;
         }
@@ -111,7 +109,7 @@ public class ArrayDiff<T> {
             LinkedList<Diff<T>> diffs_a = diff_main(arr1_a, arr2_a);
             LinkedList<Diff<T>> diffs_b = diff_main(arr1_b, arr2_b);
             diffs = diffs_a;
-            diffs.add(new Diff(Operation.UNCHANGED, mid_common));
+            diffs.add(new Diff(Operation.EQUAL, mid_common));
             diffs.addAll(diffs_b);
             return diffs;
         }
@@ -121,11 +119,13 @@ public class ArrayDiff<T> {
         if (diffs == null) {
             // No acceptable result.
             diffs = new LinkedList<Diff<T>>();
-            diffs.add(new Diff(Operation.REMOVED, arr1));
-            diffs.add(new Diff(Operation.ADDED, arr2));
+            diffs.add(new Diff(Operation.DELETE, arr1));
+            diffs.add(new Diff(Operation.INSERT, arr2));
         }
+        diff_cleanupSemantic(diffs);
         return diffs;
     }
+
 
     public int diff_commonPrefix(T[] arr1, T[] arr2) {
         int n = Math.min(arr1.length, arr2.length);
@@ -152,7 +152,7 @@ public class ArrayDiff<T> {
 
     public void diff_cleanupMerge(LinkedList<Diff<T>> diffs) {
         T[] dummyArray = (T[]) Array.newInstance(clazz, 0);
-        diffs.add(new Diff(Operation.UNCHANGED, dummyArray));  // Add a dummy entry at the end.
+        diffs.add(new Diff(Operation.EQUAL, dummyArray));  // Add a dummy entry at the end.
         ListIterator<Diff<T>> pointer = diffs.listIterator();
         int count_delete = 0;
         int count_insert = 0;
@@ -163,17 +163,17 @@ public class ArrayDiff<T> {
         int commonlength;
         while (thisDiff != null) {
             switch (thisDiff.operation) {
-                case ADDED:
+                case INSERT:
                     count_insert++;
                     arr_insert = ArrayUtils.concat(arr_insert, thisDiff.array);
                     prevEqual = null;
                     break;
-                case REMOVED:
+                case DELETE:
                     count_delete++;
                     arr_delete = ArrayUtils.concat(arr_delete, thisDiff.array);
                     prevEqual = null;
                     break;
-                case UNCHANGED:
+                case EQUAL:
                     if (count_delete != 0 || count_insert != 0) {
                         // Delete the offending records.
                         pointer.previous();  // Reverse direction.
@@ -191,13 +191,13 @@ public class ArrayDiff<T> {
                             if (commonlength != 0) {
                                 if (pointer.hasPrevious()) {
                                     thisDiff = pointer.previous();
-                                    assert thisDiff.operation == Operation.UNCHANGED
+                                    assert thisDiff.operation == Operation.EQUAL
                                             : "Previous diff should have been an equality.";
                                     thisDiff.array = ArrayUtils.concat(thisDiff.array,
                                             Arrays.copyOfRange(arr_insert, 0, commonlength));
                                     pointer.next();
                                 } else {
-                                    pointer.add(new Diff(Operation.UNCHANGED,
+                                    pointer.add(new Diff(Operation.EQUAL,
                                             Arrays.copyOfRange(arr_insert, 0, commonlength)));
                                 }
                                 arr_insert = Arrays.copyOfRange(arr_insert, commonlength, arr_insert.length);
@@ -217,10 +217,10 @@ public class ArrayDiff<T> {
                         }
                         // Insert the merged records.
                         if (arr_delete.length != 0) {
-                            pointer.add(new Diff(Operation.REMOVED, arr_delete));
+                            pointer.add(new Diff(Operation.DELETE, arr_delete));
                         }
                         if (arr_insert.length != 0) {
-                            pointer.add(new Diff(Operation.ADDED, arr_insert));
+                            pointer.add(new Diff(Operation.INSERT, arr_insert));
                         }
                         // Step forward to the equality.
                         thisDiff = pointer.hasNext() ? pointer.next() : null;
@@ -259,8 +259,8 @@ public class ArrayDiff<T> {
         Diff nextDiff = pointer.hasNext() ? pointer.next() : null;
         // Intentionally ignore the first and last element (don't need checking).
         while (nextDiff != null) {
-            if (prevDiff.operation == Operation.UNCHANGED &&
-                    nextDiff.operation == Operation.UNCHANGED) {
+            if (prevDiff.operation == Operation.EQUAL &&
+                    nextDiff.operation == Operation.EQUAL) {
                 // This is a single edit surrounded by equalities.
                 if (ArrayUtils.endsWith(thisDiff.array, prevDiff.array)) {
                     // Shift the edit over the previous equality.
@@ -494,36 +494,36 @@ public class ArrayDiff<T> {
             while (true) {
                 if (v_map.get(d).contains(diff_footprint(x - 1, y))) {
                     x--;
-                    if (last_op == Operation.REMOVED) {
+                    if (last_op == Operation.DELETE) {
                         path.getFirst().array = ArrayUtils.concat(arr1[x], path.getFirst().array);
                     } else {
-                        path.addFirst(new Diff(Operation.REMOVED,
+                        path.addFirst(new Diff(Operation.DELETE,
                                 Arrays.copyOfRange(arr1, x, x + 1)));
                     }
-                    last_op = Operation.REMOVED;
+                    last_op = Operation.DELETE;
                     break;
                 } else if (v_map.get(d).contains(diff_footprint(x, y - 1))) {
                     y--;
-                    if (last_op == Operation.ADDED) {
+                    if (last_op == Operation.INSERT) {
                         path.getFirst().array = ArrayUtils.concat(arr2[y], path.getFirst().array);
                     } else {
-                        path.addFirst(new Diff(Operation.ADDED,
+                        path.addFirst(new Diff(Operation.INSERT,
                                 Arrays.copyOfRange(arr2, y, y + 1)));
                     }
-                    last_op = Operation.ADDED;
+                    last_op = Operation.INSERT;
                     break;
                 } else {
                     x--;
                     y--;
                     assert (arr1[x].equals(arr2[y]))
                             : "No diagonal.  Can't happen. (diff_path1)";
-                    if (last_op == Operation.UNCHANGED) {
+                    if (last_op == Operation.EQUAL) {
                         path.getFirst().array = ArrayUtils.concat(arr1[x], path.getFirst().array);
                     } else {
-                        path.addFirst(new Diff(Operation.UNCHANGED,
+                        path.addFirst(new Diff(Operation.EQUAL,
                                 Arrays.copyOfRange(arr1, x, x + 1)));
                     }
-                    last_op = Operation.UNCHANGED;
+                    last_op = Operation.EQUAL;
                 }
             }
         }
@@ -540,39 +540,39 @@ public class ArrayDiff<T> {
             while (true) {
                 if (v_map.get(d).contains(diff_footprint(x - 1, y))) {
                     x--;
-                    if (last_op == Operation.REMOVED) {
+                    if (last_op == Operation.DELETE) {
                         path.getLast().array = ArrayUtils.concat(path.getLast().array,
                                 arr1[arr1.length - x- 1]);
                     } else {
-                        path.addLast(new Diff(Operation.REMOVED,
+                        path.addLast(new Diff(Operation.DELETE,
                                 Arrays.copyOfRange(arr1, arr1.length - x -1, arr1.length - x)));
                     }
-                    last_op = Operation.REMOVED;
+                    last_op = Operation.DELETE;
                     break;
                 } else if (v_map.get(d).contains(diff_footprint(x, y - 1))) {
                     y--;
-                    if (last_op == Operation.ADDED) {
+                    if (last_op == Operation.INSERT) {
                         path.getLast().array = ArrayUtils.concat(path.getLast().array,
                                 arr2[arr2.length - y - 1]);
                     } else {
-                        path.addLast(new Diff(Operation.ADDED,
+                        path.addLast(new Diff(Operation.INSERT,
                                 Arrays.copyOfRange(arr2, arr2.length - y - 1, arr2.length - y)));
                     }
-                    last_op = Operation.ADDED;
+                    last_op = Operation.INSERT;
                     break;
                 } else {
                     x--;
                     y--;
                     assert (arr1[arr1.length - x - 1].equals(arr2[arr2.length - y - 1]))
                             : "No diagonal.  Can't happen. (diff_path2)";
-                    if (last_op == Operation.UNCHANGED) {
+                    if (last_op == Operation.EQUAL) {
                         path.getLast().array = ArrayUtils.concat(path.getLast().array,
                                 arr1[arr1.length - x- 1]);
                     } else {
-                        path.addLast(new Diff(Operation.UNCHANGED,
+                        path.addLast(new Diff(Operation.EQUAL,
                                 Arrays.copyOfRange(arr1, arr1.length - x -1, arr1.length - x)));
                     }
-                    last_op = Operation.UNCHANGED;
+                    last_op = Operation.EQUAL;
                 }
             }
         }
@@ -587,6 +587,192 @@ public class ArrayDiff<T> {
         result = result << 32;
         result += y;
         return result;
+    }
+
+    public void diff_cleanupSemantic(LinkedList<Diff<T>> diffs) {
+        if (diffs.isEmpty()) {
+            return;
+        }
+        boolean changes = false;
+        Stack<Diff<T>> equalities = new Stack<Diff<T>>();  // Stack of qualities.
+        T[] lastequality = null; // Always equal to equalities.lastElement().text
+        ListIterator<Diff<T>> pointer = diffs.listIterator();
+        // Number of characters that changed prior to the equality.
+        int length_changes1 = 0;
+        // Number of characters that changed after the equality.
+        int length_changes2 = 0;
+        Diff thisDiff = pointer.next();
+        while (thisDiff != null) {
+            if (thisDiff.operation == Operation.EQUAL) {
+                // equality found
+                equalities.push(thisDiff);
+                length_changes1 = length_changes2;
+                length_changes2 = 0;
+                lastequality = (T[])thisDiff.array;
+            } else {
+                // an insertion or deletion
+                length_changes2 += thisDiff.array.length;
+                if (lastequality != null && (lastequality.length <= length_changes1)
+                        && (lastequality.length <= length_changes2)) {
+                    //System.out.println("Splitting: '" + lastequality + "'");
+                    // Walk back to offending equality.
+                    while (thisDiff != equalities.lastElement()) {
+                        thisDiff = pointer.previous();
+                    }
+                    pointer.next();
+
+                    // Replace equality with a delete.
+                    pointer.set(new Diff(Operation.DELETE, lastequality));
+                    // Insert a corresponding an insert.
+                    pointer.add(new Diff(Operation.INSERT, lastequality));
+
+                    equalities.pop();  // Throw away the equality we just deleted.
+                    if (!equalities.empty()) {
+                        // Throw away the previous equality (it needs to be reevaluated).
+                        equalities.pop();
+                    }
+                    if (equalities.empty()) {
+                        // There are no previous equalities, walk back to the start.
+                        while (pointer.hasPrevious()) {
+                            pointer.previous();
+                        }
+                    } else {
+                        // There is a safe equality we can fall back to.
+                        thisDiff = equalities.lastElement();
+                        while (thisDiff != pointer.previous()) {
+                            // Intentionally empty loop.
+                        }
+                    }
+
+                    length_changes1 = 0;  // Reset the counters.
+                    length_changes2 = 0;
+                    lastequality = null;
+                    changes = true;
+                }
+            }
+            thisDiff = pointer.hasNext() ? pointer.next() : null;
+        }
+
+        if (changes) {
+            diff_cleanupMerge(diffs);
+        }
+        diff_cleanupSemanticLossless(diffs);
+    }
+
+    public void diff_cleanupSemanticLossless(LinkedList<Diff<T>> diffs) {
+        T[] equality1, edit, equality2;
+        T[] commonArray;
+        int commonOffset;
+        int score, bestScore;
+        T[] bestEquality1, bestEdit, bestEquality2;
+        // Create a new iterator at the start.
+        ListIterator<Diff<T>> pointer = diffs.listIterator();
+        Diff prevDiff = pointer.hasNext() ? pointer.next() : null;
+        Diff thisDiff = pointer.hasNext() ? pointer.next() : null;
+        Diff nextDiff = pointer.hasNext() ? pointer.next() : null;
+        // Intentionally ignore the first and last element (don't need checking).
+        while (nextDiff != null) {
+            if (prevDiff.operation == Operation.EQUAL &&
+                    nextDiff.operation == Operation.EQUAL) {
+                // This is a single edit surrounded by equalities.
+                equality1 = (T[])prevDiff.array;
+                edit = (T[])thisDiff.array;
+                equality2 = (T[])nextDiff.array;
+
+                // First, shift the edit as far left as possible.
+                commonOffset = diff_commonSuffix(equality1, edit);
+                if (commonOffset != 0) {
+                    commonArray = Arrays.copyOfRange(edit, edit.length - commonOffset, edit.length);
+                    equality1 = Arrays.copyOfRange(equality1, 0, equality1.length - commonOffset);
+                    edit = ArrayUtils.concat(commonArray,
+                            Arrays.copyOfRange(edit, 0, edit.length - commonOffset));
+                    equality2 = ArrayUtils.concat(commonArray, equality2);
+                }
+
+                // Second, step character by character right, looking for the best fit.
+                bestEquality1 = equality1;
+                bestEdit = edit;
+                bestEquality2 = equality2;
+                bestScore = diff_cleanupSemanticScore(equality1, edit)
+                        + diff_cleanupSemanticScore(edit, equality2);
+                while (edit.length != 0 && equality2.length != 0
+                        && edit[0].equals(equality2[0])) {
+                    equality1 = ArrayUtils.concat(equality1, edit[0]);
+                    edit = ArrayUtils.concat(Arrays.copyOfRange(edit, 1, edit.length),
+                            equality2[0]);
+                    equality2 = Arrays.copyOfRange(equality2, 1, equality2.length);
+                    score = diff_cleanupSemanticScore(equality1, edit)
+                            + diff_cleanupSemanticScore(edit, equality2);
+                    // The >= encourages trailing rather than leading whitespace on edits.
+                    if (score >= bestScore) {
+                        bestScore = score;
+                        bestEquality1 = equality1;
+                        bestEdit = edit;
+                        bestEquality2 = equality2;
+                    }
+                }
+
+                if (!prevDiff.array.equals(bestEquality1)) {
+                    // We have an improvement, save it back to the diff.
+                    if (bestEquality1.length != 0) {
+                        prevDiff.array = bestEquality1;
+                    } else {
+                        pointer.previous(); // Walk past nextDiff.
+                        pointer.previous(); // Walk past thisDiff.
+                        pointer.previous(); // Walk past prevDiff.
+                        pointer.remove(); // Delete prevDiff.
+                        pointer.next(); // Walk past thisDiff.
+                        pointer.next(); // Walk past nextDiff.
+                    }
+                    thisDiff.array = bestEdit;
+                    if (bestEquality2.length != 0) {
+                        nextDiff.array = bestEquality2;
+                    } else {
+                        pointer.remove(); // Delete nextDiff.
+                        nextDiff = thisDiff;
+                        thisDiff = prevDiff;
+                    }
+                }
+            }
+            prevDiff = thisDiff;
+            thisDiff = nextDiff;
+            nextDiff = pointer.hasNext() ? pointer.next() : null;
+        }
+    }
+
+    private int diff_cleanupSemanticScore(T[] one, T[] two) {
+        if (one.length == 0 || two.length == 0) {
+            // Edges are the best.
+            return 5;
+        }
+
+        // Each port of this function behaves slightly differently due to
+        // subtle differences in each language's definition of things like
+        // 'whitespace'.  Since this function's purpose is largely cosmetic,
+        // the choice has been made to use each language's native features
+        // rather than force total conformity.
+        int score = 0;
+        // One point for non-alphanumeric.
+//        if (!Character.isLetterOrDigit(one.charAt(one.length() - 1))
+//                || !Character.isLetterOrDigit(two.charAt(0))) {
+//            score++;
+//            // Two points for whitespace.
+//            if (Character.isWhitespace(one.charAt(one.length() - 1))
+//                    || Character.isWhitespace(two.charAt(0))) {
+//                score++;
+//                // Three points for line breaks.
+//                if (Character.getType(one.charAt(one.length() - 1)) == Character.CONTROL
+//                        || Character.getType(two.charAt(0)) == Character.CONTROL) {
+//                    score++;
+//                    // Four points for blank lines.
+//                    if (BLANKLINEEND.matcher(one).find()
+//                            || BLANKLINESTART.matcher(two).find()) {
+//                        score++;
+//                    }
+//                }
+//            }
+//        }
+        return score;
     }
 
 }
