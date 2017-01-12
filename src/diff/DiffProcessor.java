@@ -20,13 +20,16 @@ public class DiffProcessor<T> {
      */
     public short Diff_DualThreshold = 32;
 
-    private Class<T> clazz;
-    protected static class LinesToCharsResult<T> {
-        protected KKString<T> chars1;
-        protected KKString<T> chars2;
-        protected List<KKString<T>> lineArray;
+    public int chunkSize1 = Integer.MAX_VALUE;
+    public int chunkSize2 = Integer.MAX_VALUE;
 
-        protected LinesToCharsResult(KKString<T> chars1, KKString<T> chars2,
+    private Class<T> clazz;
+    public static class LinesToCharsResult<T> {
+        public KKString<Integer> chars1;
+        public KKString<Integer> chars2;
+        public List<KKString<T>> lineArray;
+
+        public LinesToCharsResult(KKString<Integer> chars1, KKString<Integer> chars2,
                                      List<KKString<T>> lineArray) {
             this.chars1 = chars1;
             this.chars2 = chars2;
@@ -70,16 +73,16 @@ public class DiffProcessor<T> {
 
         // Compute the diff on the middle block
         diffs = diff_compute(text1, text2, checklines);
-//
-//        // Restore the prefix and suffix
-//        if (commonprefix.length() != 0) {
-//            diffs.addFirst(new Diff(Operation.EQUAL, commonprefix));
-//        }
-//        if (commonsuffix.length() != 0) {
-//            diffs.addLast(new Diff(Operation.EQUAL, commonsuffix));
-//        }
-//
-//        diff_cleanupMerge(diffs);
+
+        // Restore the prefix and suffix
+        if (commonprefix.length() != 0) {
+            diffs.addFirst(new Diff<T>(Operation.EQUAL, commonprefix));
+        }
+        if (commonsuffix.length() != 0) {
+            diffs.addLast(new Diff<T>(Operation.EQUAL, commonsuffix));
+        }
+
+        diff_cleanupMerge(diffs);
         return diffs;
     }
 
@@ -136,71 +139,76 @@ public class DiffProcessor<T> {
         if (checklines && (text1.length() < 100 || text2.length() < 100)) {
             checklines = false;  // Too trivial for the overhead.
         }
-        List<String> linearray = null;
-//        if (checklines) {
-//            // Scan the text on a line-by-line basis first.
-//            LinesToCharsResult b = diff_linesToChars(text1, text2);
-//            text1 = b.chars1;
-//            text2 = b.chars2;
-//            linearray = b.lineArray;
-//        }
-//
-        diffs = diff_map(text1, text2);
-        if (diffs == null) {
-            // No acceptable result.
-            diffs = new LinkedList<Diff<T>>();
-            diffs.add(new Diff(Operation.DELETE, text1));
-            diffs.add(new Diff(Operation.INSERT, text2));
+        List<KKString<T>> linearray = null;
+        KKString<Integer> char1;
+        KKString<Integer> char2;
+        if (!checklines) {
+            // Scan the text on a line-by-line basis first.
+            diffs = diff_map(text1, text2);
+            if (diffs == null) {
+                // No acceptable result.
+                diffs = new LinkedList<Diff<T>>();
+                diffs.add(new Diff(Operation.DELETE, text1));
+                diffs.add(new Diff(Operation.INSERT, text2));
+            }
+        }else {
+            LinesToCharsResult b = diff_linesToChars(text1, text2, chunkSize1, chunkSize2); /// change chunk size later
+            char1 = b.chars1;
+            char2 = b.chars2;
+            linearray = b.lineArray;
+
+            DiffProcessor<Integer> intDiffProcessor = new DiffProcessor<Integer>(Integer.class);
+            List<Diff<Integer>> intDiffs = intDiffProcessor.diff_map(char1, char2);
+            if (intDiffs == null) {
+                // No acceptable result.
+                intDiffs = new LinkedList<Diff<Integer>>();
+                intDiffs.add(new Diff(Operation.DELETE, char1));
+                intDiffs.add(new Diff(Operation.INSERT, char2));
+            }
+
+            diffs = diff_charsToLines(intDiffs, linearray);
+            diff_cleanupSemantic(diffs);
+            diffs.add(new Diff<T>(Operation.EQUAL, new KKString<T>()));
+            int count_delete = 0;
+            int count_insert = 0;
+            KKString<T> text_delete = new KKString<T>();
+            KKString<T> text_insert = new KKString<T>();
+            ListIterator<Diff<T>> pointer = diffs.listIterator();
+            Diff thisDiff = pointer.next();
+            while (thisDiff != null) {
+                switch (thisDiff.operation) {
+                    case INSERT:
+                        count_insert++;
+                        text_insert = text_insert.concat(thisDiff.text);
+                        break;
+                    case DELETE:
+                        count_delete++;
+                        text_delete = text_insert.concat(thisDiff.text);
+                        break;
+                    case EQUAL:
+                        // Upon reaching an equality, check for prior redundancies.
+                        if (count_delete >= 1 && count_insert >= 1) {
+                            // Delete the offending records and add the merged ones.
+                            pointer.previous();
+                            for (int j = 0; j < count_delete + count_insert; j++) {
+                                pointer.previous();
+                                pointer.remove();
+                            }
+                            for (Diff newDiff : diff_main(text_delete, text_insert, false)) {
+                                pointer.add(newDiff);
+                            }
+                        }
+                        count_insert = 0;
+                        count_delete = 0;
+                        text_delete = new KKString<T>();
+                        text_insert = new KKString<T>();
+                        break;
+                }
+                thisDiff = pointer.hasNext() ? pointer.next() : null;
+            }
+            diffs.removeLast();
         }
-//
-//        if (checklines) {
-//            // Convert the diff back to original text.
-//            diff_charsToLines(diffs, linearray);
-//            // Eliminate freak matches (e.g. blank lines)
-//            diff_cleanupSemantic(diffs);
-//
-//            // Rediff any replacement blocks, this time character-by-character.
-//            // Add a dummy entry at the end.
-//            diffs.add(new Diff(Operation.EQUAL, ""));
-//            int count_delete = 0;
-//            int count_insert = 0;
-//            String text_delete = "";
-//            String text_insert = "";
-//            ListIterator<Diff> pointer = diffs.listIterator();
-//            Diff thisDiff = pointer.next();
-//            while (thisDiff != null) {
-//                switch (thisDiff.operation) {
-//                    case INSERT:
-//                        count_insert++;
-//                        text_insert += thisDiff.text;
-//                        break;
-//                    case DELETE:
-//                        count_delete++;
-//                        text_delete += thisDiff.text;
-//                        break;
-//                    case EQUAL:
-//                        // Upon reaching an equality, check for prior redundancies.
-//                        if (count_delete >= 1 && count_insert >= 1) {
-//                            // Delete the offending records and add the merged ones.
-//                            pointer.previous();
-//                            for (int j = 0; j < count_delete + count_insert; j++) {
-//                                pointer.previous();
-//                                pointer.remove();
-//                            }
-//                            for (Diff newDiff : diff_main(text_delete, text_insert, false)) {
-//                                pointer.add(newDiff);
-//                            }
-//                        }
-//                        count_insert = 0;
-//                        count_delete = 0;
-//                        text_delete = "";
-//                        text_insert = "";
-//                        break;
-//                }
-//                thisDiff = pointer.hasNext() ? pointer.next() : null;
-//            }
-//            diffs.removeLast();  // Remove the dummy entry at the end.
-//        }
+
         return diffs;
     }
 
@@ -326,7 +334,7 @@ public class DiffProcessor<T> {
         return null;
     }
 
-    protected LinkedList<Diff<T>> diff_path1(List<Set<Long>> v_map,
+    public LinkedList<Diff<T>> diff_path1(List<Set<Long>> v_map,
                                           KKString<T> text1, KKString<T> text2) {
         LinkedList<Diff<T>> path = new LinkedList<Diff<T>>();
         int x = text1.length();
@@ -371,7 +379,7 @@ public class DiffProcessor<T> {
         return path;
     }
 
-    protected LinkedList<Diff<T>> diff_path2(List<Set<Long>> v_map,
+    public LinkedList<Diff<T>> diff_path2(List<Set<Long>> v_map,
                                           KKString<T> text1, KKString<T> text2) {
         LinkedList<Diff<T>> path = new LinkedList<Diff<T>>();
         int x = text1.length();
@@ -421,7 +429,7 @@ public class DiffProcessor<T> {
         return path;
     }
 
-    protected long diff_footprint(int x, int y) {
+    public long diff_footprint(int x, int y) {
         // The maximum size for a long is 9,223,372,036,854,775,807
         // The maximum size for an int is 2,147,483,647
         // Two ints fit nicely in one long.
@@ -431,7 +439,7 @@ public class DiffProcessor<T> {
         return result;
     }
 
-    protected KKString<T>[] diff_halfMatch(KKString<T> text1, KKString<T> text2) {
+    public KKString<T>[] diff_halfMatch(KKString<T> text1, KKString<T> text2) {
         KKString<T> longtext = text1.length() > text2.length() ? text1 : text2;
         KKString<T> shorttext = text1.length() > text2.length() ? text2 : text1;
         if (longtext.length() < 10 || shorttext.length() < 1) {
@@ -469,9 +477,9 @@ public class DiffProcessor<T> {
         // Start with a 1/4 length substring at position i as a seed.
         KKString<T> seed = longtext.substring(i, i + longtext.length() / 4);
         int j = -1;
-        KKString<T> best_common = new KKString<T>(clazz);
-        KKString<T> best_longtext_a = new KKString<T>(clazz), best_longtext_b = new KKString<T>(clazz);
-        KKString<T> best_shorttext_a = new KKString<T>(clazz), best_shorttext_b = new KKString<T>(clazz);
+        KKString<T> best_common = new KKString<T>();
+        KKString<T> best_longtext_a = new KKString<T>(), best_longtext_b = new KKString<T>();
+        KKString<T> best_shorttext_a = new KKString<T>(), best_shorttext_b = new KKString<T>();
         while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
             int prefixLength = diff_commonPrefix(longtext.substring(i),
                     shorttext.substring(j));
@@ -498,7 +506,7 @@ public class DiffProcessor<T> {
         // Performance analysis: http://neil.fraser.name/news/2007/10/09/
         int n = Math.min(text1.length(), text2.length());
         for (int i = 0; i < n; i++) {
-            if (text1.charAt(i) != text2.charAt(i)) {
+            if (!text1.charAt(i).equals(text2.charAt(i))) {
                 return i;
             }
         }
@@ -511,11 +519,403 @@ public class DiffProcessor<T> {
         int text2_length = text2.length();
         int n = Math.min(text1_length, text2_length);
         for (int i = 1; i <= n; i++) {
-            if (text1.charAt(text1_length - i) != text2.charAt(text2_length - i)) {
+            if (!text1.charAt(text1_length - i).equals(text2.charAt(text2_length - i))) {
                 return i - 1;
             }
         }
         return n;
+    }
+
+    public void diff_cleanupMerge(LinkedList<Diff<T>> diffs) {
+        diffs.add(new Diff<T>(Operation.EQUAL, new KKString<T>()));  // Add a dummy entry at the end.
+        ListIterator<Diff<T>> pointer = diffs.listIterator();
+        int count_delete = 0;
+        int count_insert = 0;
+        KKString<T> text_delete = new KKString<T>();
+        KKString<T> text_insert = new KKString<T>();
+        Diff thisDiff = pointer.next();
+        Diff prevEqual = null;
+        int commonlength;
+        while (thisDiff != null) {
+            switch (thisDiff.operation) {
+                case INSERT:
+                    count_insert++;
+                    text_insert = text_insert.concat(thisDiff.text);
+                    prevEqual = null;
+                    break;
+                case DELETE:
+                    count_delete++;
+                    text_delete = text_delete.concat(thisDiff.text);
+                    prevEqual = null;
+                    break;
+                case EQUAL:
+                    if (count_delete != 0 || count_insert != 0) {
+                        // Delete the offending records.
+                        pointer.previous();  // Reverse direction.
+                        while (count_delete-- > 0) {
+                            pointer.previous();
+                            pointer.remove();
+                        }
+                        while (count_insert-- > 0) {
+                            pointer.previous();
+                            pointer.remove();
+                        }
+                        if (count_delete != 0 && count_insert != 0) {
+                            // Factor out any common prefixies.
+                            commonlength = diff_commonPrefix(text_insert, text_delete);
+                            if (commonlength != 0) {
+                                if (pointer.hasPrevious()) {
+                                    thisDiff = pointer.previous();
+                                    assert thisDiff.operation == Operation.EQUAL
+                                            : "Previous diff should have been an equality.";
+                                    thisDiff.text = thisDiff.text.concat(text_insert.substring(0, commonlength));
+                                    pointer.next();
+                                } else {
+                                    pointer.add(new Diff(Operation.EQUAL,
+                                            text_insert.substring(0, commonlength)));
+                                }
+                                text_insert = text_insert.substring(commonlength);
+                                text_delete = text_delete.substring(commonlength);
+                            }
+                            // Factor out any common suffixies.
+                            commonlength = diff_commonSuffix(text_insert, text_delete);
+                            if (commonlength != 0) {
+                                thisDiff = pointer.next();
+                                thisDiff.text = text_insert.substring(text_insert.length()
+                                        - commonlength).concat(thisDiff.text);
+                                text_insert = text_insert.substring(0, text_insert.length()
+                                        - commonlength);
+                                text_delete = text_delete.substring(0, text_delete.length()
+                                        - commonlength);
+                                pointer.previous();
+                            }
+                        }
+                        // Insert the merged records.
+                        if (text_delete.length() != 0) {
+                            pointer.add(new Diff(Operation.DELETE, text_delete));
+                        }
+                        if (text_insert.length() != 0) {
+                            pointer.add(new Diff(Operation.INSERT, text_insert));
+                        }
+                        // Step forward to the equality.
+                        thisDiff = pointer.hasNext() ? pointer.next() : null;
+                    } else if (prevEqual != null) {
+                        // Merge this equality with the previous one.
+                        prevEqual.text = prevEqual.text.concat(thisDiff.text);
+                        pointer.remove();
+                        thisDiff = pointer.previous();
+                        pointer.next();  // Forward direction
+                    }
+                    count_insert = 0;
+                    count_delete = 0;
+                    text_delete = new KKString<T>();
+                    text_insert = new KKString<T>();
+                    prevEqual = thisDiff;
+                    break;
+            }
+            thisDiff = pointer.hasNext() ? pointer.next() : null;
+        }
+        // System.out.println(diff);
+        if (diffs.getLast().text.length() == 0) {
+            diffs.removeLast();  // Remove the dummy entry at the end.
+        }
+
+    /*
+     * Second pass: look for single edits surrounded on both sides by equalities
+     * which can be shifted sideways to eliminate an equality.
+     * e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
+     */
+        boolean changes = false;
+        // Create a new iterator at the start.
+        // (As opposed to walking the current one back.)
+        pointer = diffs.listIterator();
+        Diff prevDiff = pointer.hasNext() ? pointer.next() : null;
+        thisDiff = pointer.hasNext() ? pointer.next() : null;
+        Diff nextDiff = pointer.hasNext() ? pointer.next() : null;
+        // Intentionally ignore the first and last element (don't need checking).
+        while (nextDiff != null) {
+            if (prevDiff.operation == Operation.EQUAL &&
+                    nextDiff.operation == Operation.EQUAL) {
+                // This is a single edit surrounded by equalities.
+                if (thisDiff.text.endsWith(prevDiff.text)) {
+                    // Shift the edit over the previous equality.
+                    thisDiff.text = prevDiff.text.concat(
+                             thisDiff.text.substring(0, thisDiff.text.length()
+                            - prevDiff.text.length()));
+                    nextDiff.text = prevDiff.text.concat(nextDiff.text);
+                    pointer.previous(); // Walk past nextDiff.
+                    pointer.previous(); // Walk past thisDiff.
+                    pointer.previous(); // Walk past prevDiff.
+                    pointer.remove(); // Delete prevDiff.
+                    pointer.next(); // Walk past thisDiff.
+                    thisDiff = pointer.next(); // Walk past nextDiff.
+                    nextDiff = pointer.hasNext() ? pointer.next() : null;
+                    changes = true;
+                } else if (thisDiff.text.startsWith(nextDiff.text)) {
+                    // Shift the edit over the next equality.
+                    prevDiff.text = prevDiff.text.concat(nextDiff.text);
+                    thisDiff.text = thisDiff.text.substring(nextDiff.text.length()).concat(nextDiff.text);
+                    pointer.remove(); // Delete nextDiff.
+                    nextDiff = pointer.hasNext() ? pointer.next() : null;
+                    changes = true;
+                }
+            }
+            prevDiff = thisDiff;
+            thisDiff = nextDiff;
+            nextDiff = pointer.hasNext() ? pointer.next() : null;
+        }
+        // If shifts were made, the diff needs reordering and another shift sweep.
+        if (changes) {
+            diff_cleanupMerge(diffs);
+        }
+    }
+
+    public LinesToCharsResult diff_linesToChars(KKString<T> text1, KKString<T> text2, int chunkSize1, int chunkSize2) {
+        List<KKString<T>> lineArray = new ArrayList<KKString<T>>();
+        Map<KKString<T>, Integer> lineHash = new HashMap<KKString<T>, Integer>();
+        KKString<Integer> chars1 = diff_linesToCharsMunge(text1, lineArray, lineHash, chunkSize1);
+        KKString<Integer> chars2 = diff_linesToCharsMunge(text2, lineArray, lineHash, chunkSize2);
+        return new LinesToCharsResult(chars1, chars2, lineArray);
+    }
+
+    public KKString<Integer> diff_linesToCharsMunge(KKString<T> text, List<KKString<T>> lineArray,
+                                          Map<KKString<T>, Integer> lineHash, int chunkSize) {
+        int lineStart = 0;
+        int lineEnd = 0;
+        KKString<T> line;
+        KKStringBuilder chars = new KKStringBuilder();
+
+        while (lineEnd < text.length()) {
+            lineEnd = lineStart + chunkSize;
+            if (lineEnd >= text.length()) {
+                lineEnd = text.length();
+            }
+            line = text.substring(lineStart, lineEnd);
+            lineStart = lineEnd;
+
+            if (lineHash.containsKey(line)) {
+                chars.append(new KKString<Integer>(lineHash.get(line)));
+            } else {
+                lineArray.add(line);
+                lineHash.put(line, lineArray.size() - 1);
+                chars.append(new KKString<Integer>((lineArray.size() - 1)));
+            }
+        }
+        return chars.toKKString();
+    }
+
+    public LinkedList<Diff<T>> diff_charsToLines(List<Diff<Integer>> diffs,
+                                     List<KKString<T>> lineArray) {
+        KKStringBuilder text;
+        LinkedList<Diff<T>> ret = new LinkedList<Diff<T>>();
+        for (Diff<Integer> diff : diffs) {
+            text = new KKStringBuilder<T>();
+            for (int y = 0; y < diff.text.length(); y++) {
+                text.append(lineArray.get(diff.text.charAt(y)));
+            }
+            ret.add(new Diff<T>(diff.operation, text.toKKString()));
+        }
+        return ret;
+    }
+
+    public void diff_cleanupSemantic(LinkedList<Diff<T>> diffs) {
+        if (diffs.isEmpty()) {
+            return;
+        }
+        boolean changes = false;
+        Stack<Diff<T>> equalities = new Stack<Diff<T>>();  // Stack of qualities.
+        KKString<T> lastequality = null; // Always equal to equalities.lastElement().text
+        ListIterator<Diff<T>> pointer = diffs.listIterator();
+        // Number of characters that changed prior to the equality.
+        int length_changes1 = 0;
+        // Number of characters that changed after the equality.
+        int length_changes2 = 0;
+        Diff<T> thisDiff = pointer.next();
+        while (thisDiff != null) {
+            if (thisDiff.operation == Operation.EQUAL) {
+                // equality found
+                equalities.push(thisDiff);
+                length_changes1 = length_changes2;
+                length_changes2 = 0;
+                lastequality = thisDiff.text;
+            } else {
+                // an insertion or deletion
+                length_changes2 += thisDiff.text.length();
+                if (lastequality != null && (lastequality.length() <= length_changes1)
+                        && (lastequality.length() <= length_changes2)) {
+                    //System.out.println("Splitting: '" + lastequality + "'");
+                    // Walk back to offending equality.
+                    while (thisDiff != equalities.lastElement()) {
+                        thisDiff = pointer.previous();
+                    }
+                    pointer.next();
+
+                    // Replace equality with a delete.
+                    pointer.set(new Diff(Operation.DELETE, lastequality));
+                    // Insert a corresponding an insert.
+                    pointer.add(new Diff(Operation.INSERT, lastequality));
+
+                    equalities.pop();  // Throw away the equality we just deleted.
+                    if (!equalities.empty()) {
+                        // Throw away the previous equality (it needs to be reevaluated).
+                        equalities.pop();
+                    }
+                    if (equalities.empty()) {
+                        // There are no previous equalities, walk back to the start.
+                        while (pointer.hasPrevious()) {
+                            pointer.previous();
+                        }
+                    } else {
+                        // There is a safe equality we can fall back to.
+                        thisDiff = equalities.lastElement();
+                        while (thisDiff != pointer.previous()) {
+                            // Intentionally empty loop.
+                        }
+                    }
+
+                    length_changes1 = 0;  // Reset the counters.
+                    length_changes2 = 0;
+                    lastequality = null;
+                    changes = true;
+                }
+            }
+            thisDiff = pointer.hasNext() ? pointer.next() : null;
+        }
+
+        if (changes) {
+            diff_cleanupMerge(diffs);
+        }
+        diff_cleanupSemanticLossless(diffs);
+    }
+
+
+    /**
+     * Look for single edits surrounded on both sides by equalities
+     * which can be shifted sideways to align the edit to a word boundary.
+     * e.g: The c<ins>at c</ins>ame. -> The <ins>cat </ins>came.
+     * @param diffs LinkedList of Diff objects.
+     */
+    public void diff_cleanupSemanticLossless(LinkedList<Diff<T>> diffs) {
+        KKString<T> equality1, edit, equality2;
+        KKString<T> commonString;
+        int commonOffset;
+        int score, bestScore;
+        KKString<T> bestEquality1, bestEdit, bestEquality2;
+        // Create a new iterator at the start.
+        ListIterator<Diff<T>> pointer = diffs.listIterator();
+        Diff<T> prevDiff = pointer.hasNext() ? pointer.next() : null;
+        Diff<T> thisDiff = pointer.hasNext() ? pointer.next() : null;
+        Diff<T> nextDiff = pointer.hasNext() ? pointer.next() : null;
+        // Intentionally ignore the first and last element (don't need checking).
+        while (nextDiff != null) {
+            if (prevDiff.operation == Operation.EQUAL &&
+                    nextDiff.operation == Operation.EQUAL) {
+                // This is a single edit surrounded by equalities.
+                equality1 = prevDiff.text;
+                edit = thisDiff.text;
+                equality2 = nextDiff.text;
+
+                // First, shift the edit as far left as possible.
+                commonOffset = diff_commonSuffix(equality1, edit);
+                if (commonOffset != 0) {
+                    commonString = edit.substring(edit.length() - commonOffset);
+                    equality1 = equality1.substring(0, equality1.length() - commonOffset);
+                    edit = commonString.concat(edit.substring(0, edit.length() - commonOffset));
+                    equality2 = commonString.concat(equality2);
+                }
+
+                // Second, step character by character right, looking for the best fit.
+                bestEquality1 = equality1;
+                bestEdit = edit;
+                bestEquality2 = equality2;
+                bestScore = diff_cleanupSemanticScore(equality1, edit)
+                        + diff_cleanupSemanticScore(edit, equality2);
+                while (edit.length() != 0 && equality2.length() != 0
+                        && edit.charAt(0) == equality2.charAt(0)) {
+                    equality1 = equality1.concat(edit.charAt(0));
+                    edit = edit.substring(1).concat(equality2.charAt(0));
+                    equality2 = equality2.substring(1);
+                    score = diff_cleanupSemanticScore(equality1, edit)
+                            + diff_cleanupSemanticScore(edit, equality2);
+                    // The >= encourages trailing rather than leading whitespace on edits.
+                    if (score >= bestScore) {
+                        bestScore = score;
+                        bestEquality1 = equality1;
+                        bestEdit = edit;
+                        bestEquality2 = equality2;
+                    }
+                }
+
+                if (!prevDiff.text.equals(bestEquality1)) {
+                    // We have an improvement, save it back to the diff.
+                    if (bestEquality1.length() != 0) {
+                        prevDiff.text = bestEquality1;
+                    } else {
+                        pointer.previous(); // Walk past nextDiff.
+                        pointer.previous(); // Walk past thisDiff.
+                        pointer.previous(); // Walk past prevDiff.
+                        pointer.remove(); // Delete prevDiff.
+                        pointer.next(); // Walk past thisDiff.
+                        pointer.next(); // Walk past nextDiff.
+                    }
+                    thisDiff.text = bestEdit;
+                    if (bestEquality2.length() != 0) {
+                        nextDiff.text = bestEquality2;
+                    } else {
+                        pointer.remove(); // Delete nextDiff.
+                        nextDiff = thisDiff;
+                        thisDiff = prevDiff;
+                    }
+                }
+            }
+            prevDiff = thisDiff;
+            thisDiff = nextDiff;
+            nextDiff = pointer.hasNext() ? pointer.next() : null;
+        }
+    }
+
+
+    /**
+     * Given two strings, compute a score representing whether the internal
+     * boundary falls on logical boundaries.
+     * Scores range from 5 (best) to 0 (worst).
+     * @param one First string.
+     * @param two Second string.
+     * @return The score.
+     */
+    private int diff_cleanupSemanticScore(KKString<T> one, KKString<T> two) {
+        if (one.length() == 0 || two.length() == 0) {
+            // Edges are the best.
+            return 5;
+        }
+
+        // Each port of this function behaves slightly differently due to
+        // subtle differences in each language's definition of things like
+        // 'whitespace'.  Since this function's purpose is largely cosmetic,
+        // the choice has been made to use each language's native features
+        // rather than force total conformity.
+        int score = 0;
+//        // One point for non-alphanumeric.
+//        if (!Character.isLetterOrDigit(one.charAt(one.length() - 1))
+//                || !Character.isLetterOrDigit(two.charAt(0))) {
+//            score++;
+//            // Two points for whitespace.
+//            if (Character.isWhitespace(one.charAt(one.length() - 1))
+//                    || Character.isWhitespace(two.charAt(0))) {
+//                score++;
+//                // Three points for line breaks.
+//                if (Character.getType(one.charAt(one.length() - 1)) == Character.CONTROL
+//                        || Character.getType(two.charAt(0)) == Character.CONTROL) {
+//                    score++;
+//                    // Four points for blank lines.
+//                    if (BLANKLINEEND.matcher(one).find()
+//                            || BLANKLINESTART.matcher(two).find()) {
+//                        score++;
+//                    }
+//                }
+//            }
+//        }
+        return score;
     }
 
 
@@ -535,12 +935,22 @@ public class DiffProcessor<T> {
          * @param operation One of INSERT, DELETE or EQUAL.
          * @param text The text being applied.
          */
+        public Diff(Operation operation, T... text) {
+            // Construct a diff with the specified operation and text.
+            this.operation = operation;
+            this.text = new KKString<T>(text);
+        }
+
+        public Diff(Operation op, String str) {
+            this.operation = op;
+            this.text = new KKString<T>(str);
+        }
+
         public Diff(Operation operation, KKString<T> text) {
             // Construct a diff with the specified operation and text.
             this.operation = operation;
             this.text = text;
         }
-
 
         /**
          * Display a human-readable version of this Diff.
@@ -553,9 +963,12 @@ public class DiffProcessor<T> {
             builder.append(",");
             builder.append("[");
             for(int i = 0; i < text.length(); ++i) {
-                builder.append(text.charAt(i).toString()).append(",");
+                builder.append(text.charAt(i).toString()).append(", ");
             }
-            builder.deleteCharAt(builder.length() - 1);
+            if(text.length() > 0) {
+                builder.deleteCharAt(builder.length() - 1);
+                builder.deleteCharAt(builder.length() - 1);
+            }
             builder.append("]");
             builder.append(")");
             return builder.toString();

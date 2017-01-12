@@ -28,6 +28,14 @@ public class ArrayUtils {
         return ret;
     }
 
+    public static Character[] toChars(String str) {
+        Character[] ret = new Character[str.length()];
+        for(int i = 0; i < ret.length; ++i) {
+            ret[i] = str.charAt(i);
+        }
+        return ret;
+    }
+
     public static <T> boolean startsWith(T[] longArr, T[] shortArr, int offset) {
         if(offset < 0 || offset + shortArr.length > longArr.length) return false;
         for(int i = 0; i < shortArr.length; ++i) {

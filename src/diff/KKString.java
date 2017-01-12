@@ -2,34 +2,54 @@ package diff;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Created by apple on 1/11/17.
  */
 public class KKString<T> {
-    Class<T> clazz;
-    private final T[] value;
+    /**
+     * Shared empty array instance used for empty instances.
+     */
+    private static final Object[] EMPTY_ELEMENTDATA = {};
+    private int hash = 0;
+    // make value immutable
+    final Object[] value;
 
     public KKString() {
-        value = (T[])new Object[0];
+        value = EMPTY_ELEMENTDATA;
     }
 
-    public KKString(Class<T> clazz) {
-        this.clazz = clazz;
-        value = (T[])Array.newInstance(clazz,0);
+    public KKString(String str) {
+        Character[] ret = new Character[str.length()];
+        for(int i = 0; i < ret.length; ++i) {
+            ret[i] = str.charAt(i);
+        }
+        value = ret;
     }
 
-    public KKString(Class<T> clazz, T... values) {
-        this.clazz = clazz;
+    public KKString(T... values) {
         value = values;
     }
 
     public KKString(KKString<T> kkString) {
-        clazz = kkString.clazz;
         value = kkString.value;
+        hash = kkString.hash;
     }
 
-    public KKString(Class<T> clazz, T[] value, int offset, int count) {
+    public KKString(Collection<? extends T> c) {
+        Object[] tmp = c.toArray();
+        if (tmp.length != 0) {
+            if (tmp.getClass() != Object[].class)
+                value = Arrays.copyOf(tmp, tmp.length, Object[].class);
+            else
+                value = tmp;
+        } else {
+            this.value = EMPTY_ELEMENTDATA;
+        }
+    }
+
+    public KKString(T[] value, int offset, int count) {
         if (offset < 0) {
             throw new StringIndexOutOfBoundsException(offset);
         }
@@ -38,7 +58,7 @@ public class KKString<T> {
                 throw new StringIndexOutOfBoundsException(count);
             }
             if (offset <= value.length) {
-                this.value = emptyValue(clazz);
+                this.value = EMPTY_ELEMENTDATA;
                 return;
             }
         }
@@ -53,7 +73,7 @@ public class KKString<T> {
         if ((index < 0) || (index >= value.length)) {
             throw new StringIndexOutOfBoundsException(index);
         }
-        return value[index];
+        return (T)value[index];
     }
 
     public KKString<T> substring(int beginIndex) {
@@ -64,7 +84,7 @@ public class KKString<T> {
         if (subLen < 0) {
             throw new StringIndexOutOfBoundsException(subLen);
         }
-        return (beginIndex == 0) ? this : new KKString<T>(clazz, value, beginIndex, subLen);
+        return (beginIndex == 0) ? this : new KKString<T>((T[])value, beginIndex, subLen);
     }
 
     public KKString<T> substring(int beginIndex, int endIndex) {
@@ -79,7 +99,7 @@ public class KKString<T> {
             throw new StringIndexOutOfBoundsException(subLen);
         }
         return ((beginIndex == 0) && (endIndex == value.length)) ? this
-                : new KKString<T>(clazz, value, beginIndex, subLen);
+                : new KKString<T>((T[])value, beginIndex, subLen);
     }
 
 
@@ -93,23 +113,23 @@ public class KKString<T> {
             return this;
         }
         int len = value.length;
-        T[] buf = Arrays.copyOf(value, len + otherLen);
+        T[] buf = (T[])Arrays.copyOf(value, len + otherLen);
         str.getChars(buf, len);
-        return new KKString<T>(this.clazz, buf);
+        return new KKString<T>(buf);
     }
 
     public KKString<T> concat(T element) {
-        return concat(new KKString<T>(clazz, element));
+        return concat(new KKString<T>(element));
     }
 
     public KKString<T> addFirst(T element) {
-        return new KKString<T>(clazz, element).concat(this);
+        return new KKString<T>(element).concat(this);
     }
 
     public boolean startsWith(KKString<T> prefix, int toffset) {
-        T ta[] = value;
+        T ta[] = (T[])value;
         int to = toffset;
-        T pa[] = prefix.value;
+        T pa[] = (T[])prefix.value;
         int po = 0;
         int pc = prefix.value.length;
         // Note: toffset might be near -1>>>1.
@@ -160,7 +180,7 @@ public class KKString<T> {
         for (int i = sourceOffset + fromIndex; i <= max; i++) {
             /* Look for first character. */
             if (source[i] != first) {
-                while (++i <= max && source[i].equals(first));
+                while (++i <= max && !source[i].equals(first));
             }
 
             /* Found first character, now look at the rest of v2 */
@@ -194,12 +214,32 @@ public class KKString<T> {
         return value.length;
     }
 
-    KKString<T> empty() {
-        return new KKString<T>(clazz);
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("[");
+        for(int i = 0; i < value.length; ++i) {
+            builder.append(value[i].toString()).append(", ");
+        }
+        if(value.length > 0){
+            builder.deleteCharAt(builder.length() - 1);
+            builder.deleteCharAt(builder.length() - 1);
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
-    private T[] emptyValue(Class<T> clazz) {
-        return (T[])Array.newInstance(clazz,0);
+    public int hashCode() {
+        int h = hash;
+        if (h == 0 && value.length > 0) {
+            Object[] val = value;
+
+            for (int i = 0; i < value.length; i++) {
+                h = 31 * h + val[i].hashCode();
+            }
+            hash = h;
+        }
+        return h;
     }
 
 }
