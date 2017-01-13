@@ -16,6 +16,7 @@ import services.Services;
  */
 public class CellValue<T> {
     public enum CellState {
+        IMMUTABLE,
         UNCHANCED,
         ADDED,
         REMOVED,
@@ -74,6 +75,8 @@ public class CellValue<T> {
             public void changed(ObservableValue<? extends CellValue<T>> observable, CellValue<T> oldValue, CellValue<T> newValue) {
                 if(newValue != null)
                     setCellStyle(cell, newValue.getCellState());
+                else
+                    setCellStyle(cell, null);
             }
         });
         return cell;
@@ -96,6 +99,8 @@ public class CellValue<T> {
                 case MODIFIED:
                     cell.setStyle("-fx-background-color: #e07f96 ;");
                     break;
+                case IMMUTABLE:
+                    cell.setStyle("-fx-background-color: #BABABA ;");
             }
         }
     }

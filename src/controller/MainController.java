@@ -2,18 +2,26 @@ package controller;
 
 import bus.controller.BusManager;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 import data.CellValue;
+import data.CmdHistoryElement;
 import data.Record;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.DiffSignal;
 import excelprocessor.signals.PushLogSignal;
 import excelprocessor.workbook.WorkbookWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import services.Services;
@@ -22,6 +30,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * Created by apple on 1/2/17.
@@ -38,6 +47,9 @@ public class MainController implements Initializable {
 
     @FXML
     private TabPane newTabPane;
+
+    @FXML
+    private TableView cmdHistoryTableView;
 
     @FXML
     private Label outputContent;
@@ -95,25 +107,59 @@ public class MainController implements Initializable {
         for(int i = 0; i < tableViews.length; ++i) {
             final int j = i;
             tableViews[j] = new TableView<Record<String>>();
-            tableViews[j].widthProperty().addListener(new ChangeListener<Number>()
-            {
-                @Override
-                public void changed(ObservableValue<? extends Number> source, Number oldWidth, Number newWidth)
-                {
-                    final TableHeaderRow header = (TableHeaderRow) tableViews[j].lookup("TableHeaderRow");
-                    header.reorderingProperty().addListener(new ChangeListener<Boolean>() {
-                        @Override
-                        public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                            header.setReordering(false);
-                        }
-                    });
-                }
-            });
+            configureTableViewStyle(tableViews[j]);
         }
+        configureTableViewStyle(cmdHistoryTableView);
+
+        cmdHistoryTableView.getColumns().clear();
+        for(int i= 0 ; i < CmdHistoryElement.HISTORY_COLS.length; i++) {
+            final int j = i;
+            TableColumn<CmdHistoryElement, String> col = new TableColumn<CmdHistoryElement, String>(CmdHistoryElement.HISTORY_COLS[i]);
+            col.setSortable(false);
+            col.setCellValueFactory(
+                    new PropertyValueFactory<CmdHistoryElement, String>(CmdHistoryElement.PROPERTIES[i]));
+            cmdHistoryTableView.getColumns().add(col);
+        }
+
+        ObservableList<CmdHistoryElement> datas = FXCollections.observableArrayList();
+        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
+        cmdHistoryTableView.setItems(datas);
+    }
+
+    private void configureTableViewStyle(final TableView tableView) {
+        tableView.widthProperty().addListener(new ChangeListener<Number>()
+        {
+            @Override
+            public void changed(ObservableValue<? extends Number> source, Number oldWidth, Number newWidth)
+            {
+                final TableHeaderRow header = (TableHeaderRow) tableView.lookup("TableHeaderRow");
+                header.reorderingProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                        header.setReordering(false);
+                    }
+                });
+            }
+        });
+
+        tableView.
+                setStyle("-fx-selection-bar: #E6ED95; -fx-selection-bar-non-focused: #E6ED95;" +
+                        "-fx-selection-bar-text: firebrick;");
     }
 
     public TableView getTableView(int index) {
         return tableViews[index];
+    }
+
+    public void scrollTableViewTo(int index, Record<String> row) {
+        TableView tableView = tableViews[index];
+        tableView.scrollTo(row);
+        tableView.getSelectionModel().select(row);
     }
 
     private void initTabPane() {
@@ -140,6 +186,7 @@ public class MainController implements Initializable {
                 });
             }
         }
+
     }
 
     public void updateTabPane(int index, WorkbookWrapper wb) {

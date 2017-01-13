@@ -1,10 +1,8 @@
 package excelprocessor.workbook;
 
-import com.sun.javafx.geom.Vec2d;
 import data.CellDataWrapper;
 import data.CellValue;
 import data.Record;
-import diff.ArrayUtils;
 import diff.KKString;
 import excelprocessor.cellhandler.*;
 import javafx.collections.FXCollections;
@@ -39,7 +37,7 @@ public class WorkbookWrapper {
     private String path;
     private int id;
     private List<Integer> maxColumnsPerSheet = new ArrayList<Integer>();
-    private List<ArrayList<String>> columnsPerSheet = new ArrayList<ArrayList<String>>();
+    private List<ArrayList<String>> columnsNamePerSheet = new ArrayList<ArrayList<String>>();
     private List<String> sheetsName = new ArrayList<String>();
     private List<ArrayList<CellDataWrapper>> cellDataWrappersPerSheet;
     private List<ArrayList<String>> stringValuesPerSheet;
@@ -92,7 +90,7 @@ public class WorkbookWrapper {
         stringValuesPerSheet = new ArrayList<ArrayList<String>>();
         cellDataWrappersPerSheet = new ArrayList<ArrayList<CellDataWrapper>>();
         rowDatasPerSheet = new ArrayList<ObservableList<Record<String>>>();
-        String default1stCell = "      ";
+        String default1stCell = "#";
         for(int i = 0; i < numOfSheets; ++i) {
             Sheet sheet = workbook.getSheetAt(i);
             Iterator<Row> rowIterator = sheet.iterator();
@@ -104,17 +102,17 @@ public class WorkbookWrapper {
             fill(stringValues, maxRowAndCol[0] * maxRowAndCol[1]);
             while(rowIterator.hasNext()) {
                 Row row = rowIterator.next();
-                int lastColumn = row.getLastCellNum();
                 Iterator<Cell> cellIterator = row.cellIterator();
                 ObservableList<CellValue<String>> cells = FXCollections.observableArrayList();
 //                record.add(String.valueOf(countRow));
-                fill(cells, maxRowAndCol[1]);
+                fill(cells, maxRowAndCol[1] + 1);
+                cells.set(0, new CellValue<String>(String.valueOf(countRow + 1), CellValue.CellState.IMMUTABLE));
                 while(cellIterator.hasNext()) {
                     Cell cell = cellIterator.next();
                     int colIndex = cell.getAddress().getColumn();
                     Object value = handlers.get(cell.getCellType()).getValue(cell);
                     String strVal = handlers.get(cell.getCellType()).stringValueOf(cell);
-                    cells.set(colIndex, new CellValue<String>(strVal));
+                    cells.set(colIndex + 1, new CellValue<String>(strVal));
                     stringValues.set(countRow * maxRowAndCol[1] + colIndex, strVal);
                     cellDataWrappers.add(new CellDataWrapper(value, cell.getAddress()));
                 }
@@ -126,11 +124,11 @@ public class WorkbookWrapper {
             rowDatasPerSheet.add(rowDatas);
             maxColumnsPerSheet.add(maxRowAndCol[1]);
             ArrayList<String> columnsName = new ArrayList<String>();
-//            columnsName.add(default1stCell);
+            columnsName.add(default1stCell);
             for(int j = 0; j < maxRowAndCol[1]; ++j) {
                 columnsName.add(CellReference.convertNumToColString(j));
             }
-            columnsPerSheet.add(columnsName);
+            columnsNamePerSheet.add(columnsName);
             sheetsName.add(sheet.getSheetName());
         }
     }
@@ -154,7 +152,7 @@ public class WorkbookWrapper {
     }
 
     public List<String> getColumnsAtSheet(int sheet) {
-        return columnsPerSheet.get(sheet);
+        return columnsNamePerSheet.get(sheet);
     }
 
     public List<String> getSheetsName() {

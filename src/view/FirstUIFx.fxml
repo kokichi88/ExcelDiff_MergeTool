@@ -59,6 +59,8 @@
             </SplitPane>
          </children>
     </AnchorPane>
+      <Separator prefHeight="0.0" prefWidth="640.0" />
+      <TableView fx:id="cmdHistoryTableView" prefHeight="200.0" prefWidth="200.0" />
       <HBox prefHeight="30.0">
          <children>
             <Label prefHeight="36.0" text=" Output" textAlignment="CENTER" />
