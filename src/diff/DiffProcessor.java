@@ -150,6 +150,7 @@ public class DiffProcessor<T> {
                 diffs = new LinkedList<Diff<T>>();
                 diffs.add(new Diff(Operation.DELETE, text1));
                 diffs.add(new Diff(Operation.INSERT, text2));
+                diff_cleanupMerge(diffs);
             }
         }else {
             LinesToCharsResult b = diff_linesToChars(text1, text2, chunkSize1, chunkSize2); /// change chunk size later
@@ -257,7 +258,7 @@ public class DiffProcessor<T> {
                     }
                 }
                 while (!done && x < text1_length && y < text2_length
-                        && text1.charAt(x) == text2.charAt(y)) {
+                        && text1.charAt(x).equals(text2.charAt(y))) {
                     x++;
                     y++;
                     if (doubleEnd) {
@@ -303,8 +304,8 @@ public class DiffProcessor<T> {
                         footsteps.put(footstep, d);
                     }
                     while (!done && x < text1_length && y < text2_length
-                            && text1.charAt(text1_length - x - 1)
-                            == text2.charAt(text2_length - y - 1)) {
+                            && text1.charAt(text1_length - x - 1).equals(
+                            text2.charAt(text2_length - y - 1))) {
                         x++;
                         y++;
                         footstep = diff_footprint(text1_length - x, text2_length - y);
@@ -365,7 +366,7 @@ public class DiffProcessor<T> {
                 } else {
                     x--;
                     y--;
-                    assert (text1.charAt(x) == text2.charAt(y))
+                    assert (text1.charAt(x).equals(text2.charAt(y)))
                             : "No diagonal.  Can't happen. (diff_path1)";
                     if (last_op == Operation.EQUAL) {
                         path.getFirst().text = path.getFirst().text.addFirst(text1.charAt(x));
@@ -412,8 +413,8 @@ public class DiffProcessor<T> {
                 } else {
                     x--;
                     y--;
-                    assert (text1.charAt(text1.length() - x - 1)
-                            == text2.charAt(text2.length() - y - 1))
+                    assert (text1.charAt(text1.length() - x - 1).equals(
+                            text2.charAt(text2.length() - y - 1)))
                             : "No diagonal.  Can't happen. (diff_path2)";
                     if (last_op == Operation.EQUAL) {
                         path.getLast().text = path.getLast().text.concat(
@@ -831,7 +832,7 @@ public class DiffProcessor<T> {
                 bestScore = diff_cleanupSemanticScore(equality1, edit)
                         + diff_cleanupSemanticScore(edit, equality2);
                 while (edit.length() != 0 && equality2.length() != 0
-                        && edit.charAt(0) == equality2.charAt(0)) {
+                        && edit.charAt(0).equals(equality2.charAt(0))) {
                     equality1 = equality1.concat(edit.charAt(0));
                     edit = edit.substring(1).concat(equality2.charAt(0));
                     equality2 = equality2.substring(1);

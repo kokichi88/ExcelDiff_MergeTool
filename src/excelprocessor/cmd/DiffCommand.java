@@ -6,6 +6,8 @@ import data.CellValue;
 import data.Record;
 import diff.ArrayDiff;
 import diff.Diff;
+import diff.DiffProcessor;
+import diff.KKString;
 import excelprocessor.signals.DiffSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.collections.ObservableList;
@@ -26,70 +28,54 @@ public class DiffCommand implements ICommand<DiffSignal> {
         WorkbookWrapper oldWb = controller.getWorkbookWrapper(MainController.OLD_FILE_INDEX);
         WorkbookWrapper newWb = controller.getWorkbookWrapper(MainController.NEW_FILE_INDEX);
 
-        String[] oldData = oldWb.getDataForDiffAtSheet(sheet);
-        String[] newData = newWb.getDataForDiffAtSheet(sheet);
-
-        ArrayDiff<String> diffProcessor = new ArrayDiff<String>(String.class);
-        LinkedList<Diff<String>> diffs = diffProcessor.diff_main(oldData, newData);
-
         ObservableList<Record<String>> oldRecords = oldWb.getRenderDataAtSheet(sheet);
         ObservableList<Record<String>> newRecords = newWb.getRenderDataAtSheet(sheet);
 
-        // process oldRecord
-        processOldRecord(oldWb, diffs, oldRecords, sheet);
+        KKString<String> oldString = oldWb.getKKStringAtSheet(sheet);
+        KKString<String> newString = newWb.getKKStringAtSheet(sheet);
+        DiffProcessor<String> stringDiffProcessor = new DiffProcessor<String>(String.class);
+        LinkedList<DiffProcessor.Diff<String>> kkDiffs = stringDiffProcessor.diff_main(oldString, newString);
 
-        int newMaxCol = newWb.getMaxRowAndColumnAtSheet(sheet)[1];
-        int oldMaxCol = newWb.getMaxRowAndColumnAtSheet(sheet)[1];
-        Services.get(Logger.class).info("Diff {}", diffs);
-//        processOldRecord(newWb, diffs, newRecords, sheet);
+        updateTableView(oldWb, kkDiffs, oldRecords,sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.DELETE,
+                DiffProcessor.Operation.EQUAL});
+
+        updateTableView(newWb, kkDiffs, newRecords,sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.INSERT,
+                DiffProcessor.Operation.EQUAL});
     }
 
-    private void processOldRecord(WorkbookWrapper oldWb, List<Diff<String>> diffs, ObservableList<Record<String>> oldRecords, int sheet) {
-        int countUnchanged = 0;
-        int countRemoved = 0;
-        int[] maxRowAndCol = oldWb.getMaxRowAndColumnAtSheet(sheet);
+    private void updateTableView(WorkbookWrapper wb, List<DiffProcessor.Diff<String>> diffs, ObservableList<Record<String>> records,
+                                 int sheet, DiffProcessor.Operation[] opFilters) {
+
+        int[] maxRowAndCol = wb.getMaxRowAndColumnAtSheet(sheet);
         int maxCol = maxRowAndCol[1];
-        int maxRow = maxRowAndCol[0];
-        int totalCell = maxRow * maxCol;
-        for(Diff<String> diff : diffs) {
-//            if(countUnchanged >= totalCell) break;
-            switch (diff.operation) {
-                case EQUAL:
-                    for(int i = 0; i < diff.array.length; ++i) {
-                        countUnchanged++;
-                        int row = (countUnchanged - 1) / maxCol;
-                        int col = (countUnchanged - 1) % maxCol;
-                        CellValue<String> cellValue = oldRecords.get(row).cells.get(col);
-                        cellValue.setCellState(CellValue.CellState.UNCHANCED);
+        int index = -1;
+        for(DiffProcessor.Diff<String> diff : diffs) {
+            if(isValidOp(opFilters, diff.operation)) {
+                for(int i = 0; i < diff.text.length(); ++i) {
+                    index++;
+                    int row = index / maxCol;
+                    int col = index % maxCol;
+                    CellValue<String> cellValue = records.get(row).cells.get(col);
+                    switch (diff.operation) {
+                        case EQUAL:
+                            cellValue.setCellState(CellValue.CellState.UNCHANCED);
+                            break;
+                        case DELETE:
+                            cellValue.setCellState(CellValue.CellState.REMOVED);
+                            break;
+                        case INSERT:
+                            cellValue.setCellState(CellValue.CellState.ADDED);
+                            break;
                     }
-                    countRemoved = 0;
-                    break;
-                case DELETE:
-                    for(int i = 0; i < diff.array.length; ++i) {
-                        countUnchanged++;
-                        int row = (countUnchanged - 1) / maxCol;
-                        int col = (countUnchanged - 1) % maxCol;
-                        CellValue<String> cellValue = oldRecords.get(row).cells.get(col);
-                        cellValue.setCellState(CellValue.CellState.REMOVED);
-                    }
-                    countRemoved = diff.array.length;
-                    break;
-                case INSERT:
-                    for(int i = 0; i < diff.array.length; ++i) {
-                        int dt = i - countRemoved;
-                        int index;
-                        if(dt > -1) {
-                            countUnchanged++;
-                            index = countUnchanged - 1;
-                        }else {
-                            index = countUnchanged + dt;
-                        }
-                        int row = index / maxCol;
-                        int col = index % maxCol;
-                        CellValue<String> cellValue = oldRecords.get(row).cells.get(col);
-                        cellValue.setCellState(dt > -1? CellValue.CellState.ADDED : CellValue.CellState.MODIFIED);
-                    }
+                }
             }
         }
+    }
+
+    boolean isValidOp(DiffProcessor.Operation[] validOps, DiffProcessor.Operation op) {
+        for(DiffProcessor.Operation operation : validOps) {
+            if(operation == op) return true;
+        }
+        return false;
     }
 }

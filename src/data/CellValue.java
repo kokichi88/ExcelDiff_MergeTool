@@ -4,13 +4,12 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableList;
-import javafx.scene.control.Cell;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.StringConverter;
+import org.slf4j.Logger;
+import services.Services;
 
-import java.util.function.Function;
 
 /**
  * Created by apple on 1/9/17.
@@ -70,26 +69,13 @@ public class CellValue<T> {
                 }
             }
         });
-
-        final ChangeListener<CellState> stateListener = new ChangeListener<CellState>() {
-            @Override
-            public void changed(ObservableValue<? extends CellState> observable, CellState oldValue, CellState newValue) {
-                setCellStyle(cell, newValue);
-            }
-        };
-
         cell.itemProperty().addListener(new ChangeListener<CellValue<T>>() {
             @Override
             public void changed(ObservableValue<? extends CellValue<T>> observable, CellValue<T> oldValue, CellValue<T> newValue) {
-                if(oldValue != null) {
-                    oldValue.getStateProperty().removeListener(stateListener);
-                }else {
+                if(newValue != null)
                     setCellStyle(cell, newValue.getCellState());
-                    newValue.getStateProperty().addListener(stateListener);
-                }
             }
         });
-
         return cell;
     }
 

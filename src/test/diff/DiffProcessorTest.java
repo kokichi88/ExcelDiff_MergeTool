@@ -569,81 +569,164 @@ public class DiffProcessorTest extends TestCase {
         text2 = new KKString<Character>("abc");
         assertEquals("diff_main: Simple deletion.",diffs, processor.diff_main(text1, text2));
 
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("123")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("456")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
-//        assertEquals("diff_main: Two insertions.", diffs, processor.diff_main(ArrayUtils.toArray("abc"),
-//                ArrayUtils.toArray("a123b456c")));
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "123"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "b"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "456"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "c"));
+        text1 = new KKString<Character>("abc");
+        text2 = new KKString<Character>("a123b456c");
+        assertEquals("diff_main: Two insertions.",diffs, processor.diff_main(text1, text2));
+
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "123"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "b"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "456"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "c"));
+        text1 = new KKString<Character>("a123b456c");
+        text2 = new KKString<Character>("abc");
+        assertEquals("diff_main: Two deletions.",diffs, processor.diff_main(text1, text2));
 //
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("123")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("456")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
-//        assertEquals("diff_main: Two deletions.", diffs, processor.diff_main(ArrayUtils.toArray("a123b456c"),
-//                ArrayUtils.toArray("abc")));
-//
-//        // Perform a real diff.
-//        // Switch off the timeout.
-//        processor.Diff_Timeout = 0;
-//        processor.Diff_DualThreshold = 32;
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("b")));
-//        assertEquals("diff_main: Simple case #1.", diffs, processor.diff_main(ArrayUtils.toArray("a"),
-//                ArrayUtils.toArray("b")));
-//
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("Apple")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("Banana")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("s are a")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("lso")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray(" fruit.")));
-//        assertEquals("diff_main: Simple case #2.", diffs, processor.diff_main(ArrayUtils.toArray("Apples are a fruit."),
-//                ArrayUtils.toArray("Bananas are also fruit.")));
-//
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("a")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("\u0680")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("x")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("\t")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("\000")));
-//        assertEquals("diff_main: Simple case #3.", diffs, processor.diff_main(ArrayUtils.toArray("ax\t"),
-//                ArrayUtils.toArray("\u0680x\000")));
-//
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("1")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("y")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("b")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("2")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("xab")));
-//        assertEquals("diff_main: Overlap #1.", diffs, processor.diff_main(ArrayUtils.toArray("1ayb2"),
-//                ArrayUtils.toArray("abxab")));
-//
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("xaxcx")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("abc")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("y")));
-//        assertEquals("diff_main: Overlap #2.", diffs, processor.diff_main(ArrayUtils.toArray("abcy"),
-//                ArrayUtils.toArray("xaxcxabc")));
-//
-//        // Sub-optimal double-ended diff.
-//        processor.Diff_DualThreshold = 2;
-//        diffs = diffList();
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("x")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("a")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("b")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("x")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.EQUAL, ArrayUtils.toArray("c")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.DELETE, ArrayUtils.toArray("y")));
-//        diffs.add(new Diff<String>(ArrayDiff.Operation.INSERT, ArrayUtils.toArray("xabc")));
-//        assertEquals("diff_main: Overlap #3.", diffs, processor.diff_main(ArrayUtils.toArray("abcy"),
-//                ArrayUtils.toArray("xaxcxabc")));
+        // Perform a real diff.
+        // Switch off the timeout.
+        processor.Diff_Timeout = 0;
+        processor.Diff_DualThreshold = 32;
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "a"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "b"));
+        text1 = new KKString<Character>("a");
+        text2 = new KKString<Character>("b");
+        assertEquals("diff_main: Simple case #1.", diffs, processor.diff_main(text1, text2));
+
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "Apple"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "Banana"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "s are a"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "lso"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, " fruit."));
+        text1 = new KKString<Character>("Apples are a fruit.");
+        text2 = new KKString<Character>("Bananas are also fruit.");
+        assertEquals("diff_main: Simple case #2.", diffs, processor.diff_main(text1, text2));
+
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "a"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "\u0680"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "x"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "\t"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "\000"));
+        text1 = new KKString<Character>("ax\t");
+        text2 = new KKString<Character>("\u0680x\000");
+        assertEquals("diff_main: Simple case #3.", diffs, processor.diff_main(text1, text2));
+
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "1"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "y"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "b"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "2"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "xab"));
+        text1 = new KKString<Character>("1ayb2");
+        text2 = new KKString<Character>("abxab");
+        assertEquals("diff_main: Overlap #1.", diffs, processor.diff_main(text1, text2));
+
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "xaxcx"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "abc"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "y"));
+        text1 = new KKString<Character>("abcy");
+        text2 = new KKString<Character>("xaxcxabc");
+        assertEquals("diff_main: Overlap #2.", diffs, processor.diff_main(text1, text2));
+
+        // Sub-optimal double-ended diff.
+        processor.Diff_DualThreshold = 2;
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "x"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "b"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "x"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "c"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "y"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "xabc"));
+        text1 = new KKString<Character>("abcy");
+        text2 = new KKString<Character>("xaxcxabc");
+        assertEquals("diff_main: Overlap #3.", diffs, processor.diff_main(text1, text2));
+
+        processor.Diff_DualThreshold = 32;
+        diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "F"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "up"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "U"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "1b"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "9"));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "2z"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "9"));
+        text1 = new KKString<Character>("Fup1b92z9");
+        text2 = new KKString<Character>("FU1b2z");
+        assertEquals("diff_main: test 4.", diffs, processor.diff_main(text1, text2));
+    }
+
+    public void testString_mainDiff() {
+        DiffProcessor<String> diffProcessor = new DiffProcessor<String>(String.class);
+        LinkedList<DiffProcessor.Diff<String>> diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<String>(EQUAL, new String[]{"Facebook"}));
+        diffs.add(new DiffProcessor.Diff<String>(DELETE, new String[]{"user Name",
+                "password"}));
+        diffs.add(new DiffProcessor.Diff<String>(INSERT, new String[]{"user Name 2"}));
+        diffs.add(new DiffProcessor.Diff<String>(EQUAL, new String[]{"1",
+                " bdhwmnj_huison_1473307995@tfbnw.net\n"}));
+        diffs.add(new DiffProcessor.Diff<String>(DELETE, new String[]{"9furytest"}));
+        diffs.add(new DiffProcessor.Diff<String>(EQUAL, new String[]{"2",
+                "znpmdrz_goldmanberg_1473307997@tfbnw.net"}));
+        diffs.add(new DiffProcessor.Diff<String>(DELETE, new String[]{"9furytest"}));
+
+        KKString<String> text1 = new KKString<String>(new String[] {
+                "Facebook",
+                "user Name",
+                "password",
+                "1",
+                " bdhwmnj_huison_1473307995@tfbnw.net\n",
+                "9furytest",
+                "2",
+                "znpmdrz_goldmanberg_1473307997@tfbnw.net",
+                "9furytest"
+        });
+
+        KKString<String> text2 = new KKString<String>(new String[] {
+                "Facebook",
+                "user Name 2",
+                "1",
+                " bdhwmnj_huison_1473307995@tfbnw.net\n",
+                "2",
+                "znpmdrz_goldmanberg_1473307997@tfbnw.net",
+        });
+
+        assertEquals("testString_mainDiff array ", diffs, diffProcessor.diff_main(text1, text2));
+
+        ArrayList<String> list1 = new ArrayList<String>();
+        list1.add(new String("Facebook"));
+        list1.add(new String("user Name"));
+        list1.add(new String("password"));
+        list1.add(new String("1"));
+        list1.add(new String(" bdhwmnj_huison_1473307995@tfbnw.net\n"));
+        list1.add(new String("9furytest"));
+        list1.add(new String("2"));
+        list1.add(new String("znpmdrz_goldmanberg_1473307997@tfbnw.net"));
+        list1.add(new String("9furytest"));
+
+        ArrayList<String> list2 = new ArrayList<String>();
+        list2.add(new String("Facebook"));
+        list2.add(new String("user Name 2"));
+        list2.add(new String("1"));
+        list2.add(new String(" bdhwmnj_huison_1473307995@tfbnw.net\n"));
+        list2.add(new String("2"));
+        list2.add(new String("znpmdrz_goldmanberg_1473307997@tfbnw.net"));
+
+        text1 = new KKString<String>(list1);
+        text2 = new KKString<String>(list2);
+
+        assertEquals("testString_mainDiff list ", diffs, diffProcessor.diff_main(text1, text2));
     }
 
     private <T> LinkedList<DiffProcessor.Diff<T>> diffList(DiffProcessor.Diff<T>... diffs) {

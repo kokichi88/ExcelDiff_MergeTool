@@ -5,6 +5,7 @@ import data.CellDataWrapper;
 import data.CellValue;
 import data.Record;
 import diff.ArrayUtils;
+import diff.KKString;
 import excelprocessor.cellhandler.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -144,6 +145,12 @@ public class WorkbookWrapper {
     public String[] getDataForDiffAtSheet(int sheet) {
         ArrayList<String> datas = stringValuesPerSheet.get(sheet);
         return datas.toArray(new String[]{});
+    }
+
+    public KKString<String> getKKStringAtSheet(int sheet) {
+        ArrayList<String> datas = stringValuesPerSheet.get(sheet);
+        KKString<String> ret = new KKString<String>(datas);
+        return ret;
     }
 
     public List<String> getColumnsAtSheet(int sheet) {
