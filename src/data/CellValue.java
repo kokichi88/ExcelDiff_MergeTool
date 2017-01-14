@@ -7,8 +7,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.StringConverter;
-import org.slf4j.Logger;
-import services.Services;
 
 
 /**
@@ -17,7 +15,7 @@ import services.Services;
 public class CellValue<T> {
     public enum CellState {
         IMMUTABLE,
-        UNCHANCED,
+        UNCHANGED,
         ADDED,
         REMOVED,
         MODIFIED
@@ -62,7 +60,7 @@ public class CellValue<T> {
             public CellValue<T> fromString(String string) {
                 try {
                     T value = clazz.getConstructor(String.class).newInstance(string);
-                    CellState cellState = cell.getItem() == null ? CellState.UNCHANCED : cell.getItem().getCellState() ;
+                    CellState cellState = cell.getItem() == null ? CellState.UNCHANGED : cell.getItem().getCellState() ;
                     return new CellValue<T>(value, cellState);
                 }catch (Exception e) {
                     e.printStackTrace();
@@ -87,7 +85,7 @@ public class CellValue<T> {
             cell.setStyle("");
         }else {
             switch (newValue) {
-                case UNCHANCED:
+                case UNCHANGED:
                     cell.setStyle("");
                     break;
                 case ADDED:

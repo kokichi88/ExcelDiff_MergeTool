@@ -18,7 +18,7 @@ public class DoubleCellHandler implements ICellHandler<Double> {
             Long longVal = value.longValue();
             return longVal.toString();
         }else
-            return null;
+            return value.toString();
     }
 
     @Override
