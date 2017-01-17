@@ -122,12 +122,11 @@ public class MainController implements Initializable {
         }
 
         ObservableList<CmdHistoryElement> datas = FXCollections.observableArrayList();
-        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a","b","c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a",1, 1,"c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a",1, 2,"c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a",1, 3,"c","d","desc"));
+        datas.addAll(new CmdHistoryElement("a",1, 4,"c","d","desc"));
+
         cmdHistoryTableView.setItems(datas);
     }
 
