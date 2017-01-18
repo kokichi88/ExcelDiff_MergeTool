@@ -457,11 +457,11 @@ public class DiffProcessorTest extends TestCase {
 
     public void testDiffCharsToLines() {
         // First check that Diff equality works.
-        assertTrue("diff_charsToLines:", new DiffProcessor.Diff<Character>(EQUAL, "a").
-                equals(new DiffProcessor.Diff<Character>(EQUAL, "a")));
+        assertTrue("diff_charsToLines:", new DiffProcessor.Diff<Character>(EQUAL, ArrayUtils.toChars("a")).
+                equals(new DiffProcessor.Diff<Character>(EQUAL, ArrayUtils.toChars("a"))));
 
-        assertEquals("diff_charsToLines:", new DiffProcessor.Diff<Character>(EQUAL, "a"),
-                new DiffProcessor.Diff<Character>(EQUAL, "a"));
+        assertEquals("diff_charsToLines:", new DiffProcessor.Diff<Character>(EQUAL, ArrayUtils.toChars("a")),
+                new DiffProcessor.Diff<Character>(EQUAL, ArrayUtils.toChars("a")));
 
         LinkedList<DiffProcessor.Diff<Integer>> intDiffs = diffList();
         intDiffs.add(new DiffProcessor.Diff<Integer>(EQUAL, new KKString<Integer>(0,1,0)));
@@ -472,8 +472,8 @@ public class DiffProcessorTest extends TestCase {
 
         LinkedList<DiffProcessor.Diff<Character>> actual = processor.diff_charsToLines(intDiffs, list);
         LinkedList<DiffProcessor.Diff<Character>> expected = diffList();
-        expected.add(new DiffProcessor.Diff<Character>(EQUAL, new KKString<Character>("aabbaa")));
-        expected.add(new DiffProcessor.Diff<Character>(INSERT, new KKString<Character>("bb")));
+        expected.add(new DiffProcessor.Diff<Character>(EQUAL, new KKString<Character>(ArrayUtils.toChars("aabbaa"))));
+        expected.add(new DiffProcessor.Diff<Character>(INSERT, new KKString<Character>(ArrayUtils.toChars("bb"))));
         assertEquals("diff_charsToLines:", expected, actual);
 
     }
@@ -484,54 +484,54 @@ public class DiffProcessorTest extends TestCase {
         assertEquals("diff_cleanupSemantic: Null case.", diffList(), diffs);
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "b"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "cd"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "e"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'c', 'd'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'e'));
 
         LinkedList<DiffProcessor.Diff<Character>> diffs2 = diffList();
-        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, "a"));
-        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, "b"));
-        diffs2.add(new DiffProcessor.Diff<Character>(EQUAL, "cd"));
-        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, "e"));
+        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, 'a'));
+        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, 'b'));
+        diffs2.add(new DiffProcessor.Diff<Character>(EQUAL, 'c', 'd'));
+        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, 'e'));
         processor.diff_cleanupSemantic(diffs);
         assertEquals("diff_cleanupSemantic: No elimination.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "b"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "c"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'c'));
         diffs2 = diffList();
-        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, "abc"));
-        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, "b"));
+        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, ArrayUtils.toChars("abc")));
+        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, 'b'));
         processor.diff_cleanupSemantic(diffs);
         assertEquals("diff_cleanupSemantic: Simple elimination.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "ab"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "cd"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "e"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "f"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "g"));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'a', 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'c', 'd'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'e'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'f'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, 'g'));
         diffs2 = diffList();
-        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, "abcdef"));
-        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, "cdfg"));
+        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, ArrayUtils.toChars("abcdef")));
+        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, ArrayUtils.toChars("cdfg")));
         processor.diff_cleanupSemantic(diffs);
         assertEquals("diff_cleanupSemantic: Backpass elimination.", diffs2, diffs);
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "1"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "A"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "B"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "2"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "_"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "1"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "A"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "B"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "2"));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '1'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'A'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'B'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '2'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, '_'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '1'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'A'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'B'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '2'));
         diffs2 = diffList();
-        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, "AB_AB"));
-        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, "1A2_1A2"));
+        diffs2.add(new DiffProcessor.Diff<Character>(DELETE, ArrayUtils.toChars("AB_AB")));
+        diffs2.add(new DiffProcessor.Diff<Character>(INSERT, ArrayUtils.toChars("1A2_1A2")));
         processor.diff_cleanupSemantic(diffs);
         assertEquals("diff_cleanupSemantic: Multiple elimination.", diffs2, diffs);
 
@@ -550,46 +550,46 @@ public class DiffProcessorTest extends TestCase {
     public void test_diff_main() {
         // Perform a trivial diff.
         LinkedList<DiffProcessor.Diff<Character>> diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "abc"));
-        KKString<Character> text1 = new KKString<Character>("abc");
-        KKString<Character> text2 = new KKString<Character>("abc");
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'a','b','c'));
+        KKString<Character> text1 = new KKString<Character>('a','b','c');
+        KKString<Character> text2 = new KKString<Character>('a','b','c');
         assertEquals("diff_main: Null case.", diffs, processor.diff_main(text1, text2));
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "ab"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "123"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "c"));
-        text1 = new KKString<Character>("abc");
-        text2 = new KKString<Character>("ab123c");
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'a', 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '1','2', '3'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'c'));
+        text1 = new KKString<Character>('a','b','c');
+        text2 = new KKString<Character>('a', 'b','1', '2', '3', 'c');
         assertEquals("diff_main: Simple insertion.",diffs, processor.diff_main(text1, text2));
 
 //
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "123"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "bc"));
-        text1 = new KKString<Character>("a123bc");
-        text2 = new KKString<Character>("abc");
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '1', '2', '3'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'b', 'c'));
+        text1 = new KKString<Character>('a', '1', '2', '3', 'b', 'c');
+        text2 = new KKString<Character>('a', 'b', 'c');
         assertEquals("diff_main: Simple deletion.",diffs, processor.diff_main(text1, text2));
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "123"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "b"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "456"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "c"));
-        text1 = new KKString<Character>("abc");
-        text2 = new KKString<Character>("a123b456c");
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '1','2','3'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '4','5','6'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'c'));
+        text1 = new KKString<Character>(ArrayUtils.toChars("abc"));
+        text2 = new KKString<Character>(ArrayUtils.toChars("a123b456c"));
         assertEquals("diff_main: Two insertions.",diffs, processor.diff_main(text1, text2));
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "123"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "b"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "456"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "c"));
-        text1 = new KKString<Character>("a123b456c");
-        text2 = new KKString<Character>("abc");
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '1', '2', '3'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '4','5','6'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'c'));
+        text1 = new KKString<Character>(ArrayUtils.toChars("a123b456c"));
+        text2 = new KKString<Character>('a','b','c');
         assertEquals("diff_main: Two deletions.",diffs, processor.diff_main(text1, text2));
 //
         // Perform a real diff.
@@ -597,76 +597,76 @@ public class DiffProcessorTest extends TestCase {
         processor.Diff_Timeout = 0;
         processor.Diff_DualThreshold = 32;
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "b"));
-        text1 = new KKString<Character>("a");
-        text2 = new KKString<Character>("b");
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, 'b'));
+        text1 = new KKString<Character>('a');
+        text2 = new KKString<Character>('b');
         assertEquals("diff_main: Simple case #1.", diffs, processor.diff_main(text1, text2));
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "Apple"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "Banana"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "s are a"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "lso"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, " fruit."));
-        text1 = new KKString<Character>("Apples are a fruit.");
-        text2 = new KKString<Character>("Bananas are also fruit.");
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, ArrayUtils.toChars("Apple")));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, ArrayUtils.toChars("Banana")));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, ArrayUtils.toChars("s are a")));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, ArrayUtils.toChars("lso")));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, ArrayUtils.toChars(" fruit.")));
+        text1 = new KKString<Character>(ArrayUtils.toChars("Apples are a fruit."));
+        text2 = new KKString<Character>(ArrayUtils.toChars("Bananas are also fruit."));
         assertEquals("diff_main: Simple case #2.", diffs, processor.diff_main(text1, text2));
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "\u0680"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "x"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "\t"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "\000"));
-        text1 = new KKString<Character>("ax\t");
-        text2 = new KKString<Character>("\u0680x\000");
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '\u0680'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'x'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '\t'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, '\000'));
+        text1 = new KKString<Character>(ArrayUtils.toChars("ax\t"));
+        text2 = new KKString<Character>(ArrayUtils.toChars("\u0680x\000"));
         assertEquals("diff_main: Simple case #3.", diffs, processor.diff_main(text1, text2));
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "1"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "y"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "b"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "2"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "xab"));
-        text1 = new KKString<Character>("1ayb2");
-        text2 = new KKString<Character>("abxab");
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '1'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'y'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '2'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, 'x', 'a', 'b'));
+        text1 = new KKString<Character>(ArrayUtils.toChars("1ayb2"));
+        text2 = new KKString<Character>(ArrayUtils.toChars("abxab"));
         assertEquals("diff_main: Overlap #1.", diffs, processor.diff_main(text1, text2));
 
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "xaxcx"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "abc"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "y"));
-        text1 = new KKString<Character>("abcy");
-        text2 = new KKString<Character>("xaxcxabc");
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, ArrayUtils.toChars("xaxcx")));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, ArrayUtils.toChars("abc")));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'y'));
+        text1 = new KKString<Character>(ArrayUtils.toChars("abcy"));
+        text2 = new KKString<Character>(ArrayUtils.toChars("xaxcxabc"));
         assertEquals("diff_main: Overlap #2.", diffs, processor.diff_main(text1, text2));
 
         // Sub-optimal double-ended diff.
         processor.Diff_DualThreshold = 2;
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "x"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "a"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "b"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "x"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "c"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "y"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "xabc"));
-        text1 = new KKString<Character>("abcy");
-        text2 = new KKString<Character>("xaxcxabc");
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, 'x'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'a'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, 'x'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'c'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'y'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, ArrayUtils.toChars("xabc")));
+        text1 = new KKString<Character>(ArrayUtils.toChars("abcy"));
+        text2 = new KKString<Character>(ArrayUtils.toChars("xaxcxabc"));
         assertEquals("diff_main: Overlap #3.", diffs, processor.diff_main(text1, text2));
 
         processor.Diff_DualThreshold = 32;
         diffs = diffList();
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "F"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "up"));
-        diffs.add(new DiffProcessor.Diff<Character>(INSERT, "U"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "1b"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "9"));
-        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, "2z"));
-        diffs.add(new DiffProcessor.Diff<Character>(DELETE, "9"));
-        text1 = new KKString<Character>("Fup1b92z9");
-        text2 = new KKString<Character>("FU1b2z");
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, 'F'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, 'u', 'p'));
+        diffs.add(new DiffProcessor.Diff<Character>(INSERT, 'U'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, '1', 'b'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '9'));
+        diffs.add(new DiffProcessor.Diff<Character>(EQUAL, '2', 'z'));
+        diffs.add(new DiffProcessor.Diff<Character>(DELETE, '9'));
+        text1 = new KKString<Character>(ArrayUtils.toChars("Fup1b92z9"));
+        text2 = new KKString<Character>(ArrayUtils.toChars("FU1b2z"));
         assertEquals("diff_main: test 4.", diffs, processor.diff_main(text1, text2));
     }
 
@@ -764,9 +764,9 @@ public class DiffProcessorTest extends TestCase {
 
         LinkedList<DiffProcessor.Diff<String>> diffs = diffProcessor.diff_main(text1, text2);
         LinkedList<CmdHistoryElement> expected = new LinkedList<CmdHistoryElement>();
-        expected.add(new CmdHistoryElement("sheet1",
-                1, 1, "[name1]", "[name11]", CellValue.CellState.MODIFIED.toString()));
-        LinkedList<CmdHistoryElement> actual = diffCommand.getCmdHistory("sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                1, 1, "[name1]", "[name11]", CellValue.CellState.MODIFIED, CellValue.CellState.MODIFIED.toString()));
+        LinkedList<CmdHistoryElement> actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple modified case ", expected, actual);
 
         text1 = new KKString<String>(
@@ -789,9 +789,6 @@ public class DiffProcessorTest extends TestCase {
                 "",
                 "name",
                 "stat",
-                "1",
-                "name1",
-                "stat1",
                 "3",
                 "name3",
                 "stat3"
@@ -801,18 +798,33 @@ public class DiffProcessorTest extends TestCase {
 
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
-        expected.add(new CmdHistoryElement("sheet1",
-                2, 1, "[2, name2, stat2]", "", CellValue.CellState.REMOVED.toString()));
-        actual = diffCommand.getCmdHistory("sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                2, 0, "[1, name1, stat1, 2, name2, stat2]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple removed case ", expected, actual);
+
+        text1 = new KKString<String>(
+                "1",
+                "2"
+        );
+        text1ColCount = 1;
+
+        text2 = new KKString<String>(
+                "1"
+        );
+        text2ColCount = 1;
+
+        diffs = diffProcessor.diff_main(text1, text2);
+        expected = new LinkedList<CmdHistoryElement>();
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                1, 0, "[2]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        assertEquals("test_getRowDiff simple removed case 2", expected, actual);
 
         text1 = new KKString<String>(
                 "",
                 "name",
                 "stat",
-                "1",
-                "name1",
-                "stat1",
                 "3",
                 "name3",
                 "stat3"
@@ -833,14 +845,13 @@ public class DiffProcessorTest extends TestCase {
                 "name3",
                 "stat3"
         );
-
         text2ColCount = 3;
 
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
-        expected.add(new CmdHistoryElement("sheet1",
-                1, 2, "", "[2, name2, stat2]", CellValue.CellState.ADDED.toString()));
-        actual = diffCommand.getCmdHistory("sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                0, 2, "", "[1, name1, stat1, 2, name2, stat2]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple added case ", expected, actual);
 
         text1 = new KKString<String>(
@@ -864,19 +875,17 @@ public class DiffProcessorTest extends TestCase {
                 "2",
                 "name2"
         );
-
         text2ColCount = 2;
 
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
-        expected.add(new CmdHistoryElement("sheet1",
-                0, 0, "[stat]", "", CellValue.CellState.REMOVED.toString()));
-        expected.add(new CmdHistoryElement("sheet1",
-                1, 1, "[stat1]", "", CellValue.CellState.REMOVED.toString()));
-        expected.add(new CmdHistoryElement("sheet1",
-                2, 2, "[stat2]", "", CellValue.CellState.REMOVED.toString()));
-
-        actual = diffCommand.getCmdHistory("sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                0, 0, "[stat]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                1, 1, "[stat1]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                2, 2, "[stat2]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple remove column case ", expected, actual);
 
         text1 = new KKString<String>(
@@ -900,19 +909,17 @@ public class DiffProcessorTest extends TestCase {
                 "name2",
                 "stat2"
         );
-
         text2ColCount = 3;
 
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
-        expected.add(new CmdHistoryElement("sheet1",
-                0, 0, "", "[stat]", CellValue.CellState.ADDED.toString()));
-        expected.add(new CmdHistoryElement("sheet1",
-                1, 1, "", "[stat1]", CellValue.CellState.ADDED.toString()));
-        expected.add(new CmdHistoryElement("sheet1",
-                2, 2, "", "[stat2]", CellValue.CellState.ADDED.toString()));
-
-        actual = diffCommand.getCmdHistory("sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                0, 0, "", "[stat]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                1, 1, "", "[stat1]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                2, 2, "", "[stat2]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple add row case ", expected, actual);
 
         text1 = new KKString<String>(
@@ -939,16 +946,13 @@ public class DiffProcessorTest extends TestCase {
                 "5",
                 "name5"
         );
-
         text2ColCount = 2;
 
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
-        expected.add(new CmdHistoryElement("sheet1",
-                3, 3, "[3, name3]", "[4, name4, 5, name5]", CellValue.CellState.MODIFIED.toString()));
-
-
-        actual = diffCommand.getCmdHistory("sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                3, 4, "[3, name3]", "[4, name4, 5, name5]", CellValue.CellState.MODIFIED, CellValue.CellState.MODIFIED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff remove and insert row case ", expected, actual);
 
         text1 = new KKString<String>("", "name",
@@ -960,26 +964,50 @@ public class DiffProcessorTest extends TestCase {
         text2 = new KKString<String>("", "name", "stat",
                 "1", "name1", "stat1",
                 "2", "name2", "stat2",
+                "4", "name4", "stat4",
                 "3", "name3", "stat3",
                 "4", "name4", "stat4");
-
         text2ColCount = 3;
 
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
-        expected.add(new CmdHistoryElement("sheet1",
-                0 , 0, "", "[stat]", CellValue.CellState.ADDED.toString()));
-        expected.add(new CmdHistoryElement("sheet1",
-                1 , 1, "", "[stat1]", CellValue.CellState.ADDED.toString()));
-        expected.add(new CmdHistoryElement("sheet1",
-                2 , 2, "", "[stat2]", CellValue.CellState.ADDED.toString()));
-        expected.add(new CmdHistoryElement("sheet1",
-                3 , 3, "", "[stat3, 4, name4, stat4]", CellValue.CellState.ADDED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                0 , 0, "", "[stat]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                1 , 1, "", "[stat1]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                2 , 3, "", "[stat2, 4, name4, stat4]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                3 , 5, "", "[stat3, 4, name4, stat4]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        assertEquals("test_getRowDiff add row and column ", expected, actual);
 
+        text1 = new KKString<String>("", "name", "stat",
+                "1", "name1", "stat1",
+                "2", "name2", "stat2",
+                "4", "name4", "stat4",
+                "3", "name3", "stat3",
+                "4", "name4", "stat4");
+        text1ColCount = 3;
 
+        text2 = new KKString<String>("", "name",
+                "1", "name1",
+                "2", "name2",
+                "3", "name3");
+        text2ColCount = 2;
 
-        actual = diffCommand.getCmdHistory("sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
-        assertEquals("test_getRowDiff add row and add column ", expected, actual);
+        diffs = diffProcessor.diff_main(text1, text2);
+        expected = new LinkedList<CmdHistoryElement>();
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                0 , 0, "[stat]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                1 , 1, "[stat1]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                3 , 2, "[stat2, 4, name4, stat4]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        expected.add(new CmdHistoryElement(0, "sheet1",
+                5 , 3, "[stat3, 4, name4, stat4]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+        actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
+        assertEquals("test_getRowDiff remove row and column ", expected, actual);
 
     }
 

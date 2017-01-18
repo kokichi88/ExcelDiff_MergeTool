@@ -942,10 +942,6 @@ public class DiffProcessor<T> {
             this.text = new KKString<T>(text);
         }
 
-        public Diff(Operation op, String str) {
-            this.operation = op;
-            this.text = new KKString<T>(str);
-        }
 
         public Diff(Operation operation, KKString<T> text) {
             // Construct a diff with the specified operation and text.
