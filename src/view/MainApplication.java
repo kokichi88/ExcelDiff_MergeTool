@@ -46,17 +46,18 @@ public class MainApplication extends Application {
         int width =(int) (gd.getDisplayMode().getWidth() * ratio);
         int height =(int) (gd.getDisplayMode().getHeight() * ratio);
         stage.setScene(new Scene(root, width, height));
+        stage.getScene().getStylesheets().add(getClass().getResource("table.css").toExternalForm());
         stage.show();
 
         initController(loader);
 
         Services.get(BusManager.class).dispatch(
                 new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "TestAccount1.xlsx", Services.get(MainController.class)));
+                        + File.separator + "ConfigConstant_old.xlsx", Services.get(MainController.class)));
 
         Services.get(BusManager.class).dispatch(
                 new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "TestAccount2.xlsx", Services.get(MainController.class)));
+                        + File.separator + "ConfigConstant_new.xlsx", Services.get(MainController.class)));
     }
 
     private void initCmds() {
@@ -68,6 +69,7 @@ public class MainApplication extends Application {
             busManager.register(PushLogSignal.class, WriteLogCmd.class);
             busManager.register(UpdateTabPaneSignal.class, UpdateTabPaneCmd.class);
             busManager.register(DiffSignal.class, DiffCommand.class);
+            busManager.register(CmdHistorySelectedSignal.class, FocusRowCommand.class);
         } catch (Exception e) {
             Services.get(Logger.class).error(e.getMessage());
         }

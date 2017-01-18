@@ -4,9 +4,13 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.StringConverter;
+import org.slf4j.Logger;
+import services.Services;
+import view.StyleSheetHelper;
 
 
 /**
@@ -25,6 +29,7 @@ public class CellValue<T> {
 
     public CellValue(T value) {
         this.value = value;
+        setCellState(CellState.UNCHANGED);
     }
 
     public CellValue(T value, CellState state) {
@@ -49,7 +54,7 @@ public class CellValue<T> {
     }
 
     public static <T> TableCell<Record<String>, CellValue<T>> createTableCell(final Class<T> clazz){
-        final TextFieldTableCell<Record<String>, CellValue<T>> cell = new TextFieldTableCell<Record<String>, CellValue<T>>();
+        final TextFieldTableCell<Record<String>, CellValue<T>> cell = new RecordCell<T>();
         cell.setConverter(new StringConverter<CellValue<T>>() {
             @Override
             public String toString(CellValue<T> item) {
@@ -68,38 +73,43 @@ public class CellValue<T> {
                 }
             }
         });
-        cell.itemProperty().addListener(new ChangeListener<CellValue<T>>() {
-            @Override
-            public void changed(ObservableValue<? extends CellValue<T>> observable, CellValue<T> oldValue, CellValue<T> newValue) {
-                if(newValue != null)
-                    setCellStyle(cell, newValue.getCellState());
-                else
-                    setCellStyle(cell, null);
-            }
-        });
         return cell;
     }
 
-    public static <T> void setCellStyle(TextFieldTableCell<Record<String>, CellValue<T>> cell, CellState newValue) {
+    public static class RecordCell<T> extends TextFieldTableCell<Record<String>, CellValue<T>> {
+
+        @Override
+        public void updateItem(CellValue<T> value, boolean empty) {
+            super.updateItem(value, empty);
+            if(!empty) {
+                setCellStyle(this, value.getCellState());
+            }
+        }
+    }
+
+    public static void setCellStyle(TableCell cell, CellState newValue) {
+        ObservableList<String> styleClass = cell.getStyleClass();
+        StyleSheetHelper.clearAdditionalStyle(styleClass);
         if(newValue == null) {
-            cell.setStyle("");
         }else {
             switch (newValue) {
                 case UNCHANGED:
-                    cell.setStyle("");
+
                     break;
                 case ADDED:
-                    cell.setStyle("-fx-background-color: #7fe084 ;");
+//                    StyleSheetHelper.addStyle(styleClass, newValue);
+//                    cell.setStyle();
                     break;
                 case REMOVED:
-                    cell.setStyle("-fx-background-color: #7f9ee0 ;");
+//                    cell.setStyle("-fx-background-color: #7f9ee0 ;");
                     break;
                 case MODIFIED:
-                    cell.setStyle("-fx-background-color: #e07f96 ;");
+//                    cell.setStyle("-fx-background-color: #e07f96 ;");
                     break;
                 case IMMUTABLE:
-                    cell.setStyle("-fx-background-color: #BABABA ;");
+//                    cell.setStyle("-fx-background-color: #BABABA ;");
             }
+
         }
     }
 

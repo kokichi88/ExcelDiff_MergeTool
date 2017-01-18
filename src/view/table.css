@@ -1,0 +1,24 @@
+.ADDED {
+  -fx-control-inner-background: #7fe084;
+  -fx-accent: derive(-fx-control-inner-background, -40%);
+  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
+  -fx-selection-bar-non-focused: -fx-accent;
+}
+
+.REMOVED {
+  -fx-control-inner-background: #7f9ee0;
+  -fx-accent: derive(-fx-control-inner-background, -40%);
+  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
+}
+
+.MODIFIED {
+  -fx-control-inner-background: #e07f96;
+  -fx-accent: derive(-fx-control-inner-background, -40%);
+  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
+}
+
+.IMMUTABLE {
+  -fx-control-inner-background: #BABABA;
+  -fx-accent: derive(-fx-control-inner-background, -40%);
+  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
+}

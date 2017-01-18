@@ -29,13 +29,12 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
         final MainController controller = signal.controller;
         OpenWorkbookService service = new OpenWorkbookService(path, index);
         final BusManager busManager = Services.get(BusManager.class);
-        busManager.dispatch(new PushLogSignal("Start loading file " + path));
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent event) {
                 WorkbookWrapper wb = (WorkbookWrapper)event.getSource().getValue();
                 controller.setWorkbooks(index, wb);
-                busManager.dispatch(new PushLogSignal("File " + path + " is loaded successfully"));
+                busManager.dispatch(new PushLogSignal("File " + path + " is loaded"));
                 busManager.dispatch(new UpdateTabPaneSignal(controller, index, wb));
 
                 TabPane tabPane = controller.getTabPane(index);
@@ -66,6 +65,9 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
             return new Task<WorkbookWrapper>() {
                 @Override
                 protected WorkbookWrapper call() throws Exception {
+                    final BusManager busManager = Services.get(BusManager.class);
+                    Thread.sleep(id * 2000);
+                    busManager.dispatch(new PushLogSignal("Start loading file " + path));
                     WorkbookWrapper wb = new WorkbookWrapper(path, id);
                     return wb;
                 }

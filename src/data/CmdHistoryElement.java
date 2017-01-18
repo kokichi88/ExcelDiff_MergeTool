@@ -9,12 +9,14 @@ import javafx.beans.property.StringProperty;
  * Created by apple on 1/13/17.
  */
 public class CmdHistoryElement {
-    public static final String[] HISTORY_COLS = {"Sheet", "Old Row", "New Row",  "Old Value",
+    public static final String[] HISTORY_COLS = {"Sheet Name", "Old Row", "New Row",  "Old Value",
     "New Value", "Description"};
 
     public static final String[] PROPERTIES = {"sheetName", "oldRow", "newRow", "oldValue",
             "newValue", "desc"};
 
+    private int sheetid;
+    private CellValue.CellState state;
     private final StringProperty sheetName;
     private final IntegerProperty oldRow;
     private final IntegerProperty newRow;
@@ -22,12 +24,14 @@ public class CmdHistoryElement {
     private final StringProperty newValue;
     private final StringProperty desc;
 
-    public CmdHistoryElement(String sheetName, int oldRow, int newRow, String oldValue, String newValue, String desc) {
+    public CmdHistoryElement(int sheetid, String sheetName, int oldRow, int newRow, String oldValue, String newValue, CellValue.CellState state, String desc) {
+        this.sheetid = sheetid;
         this.sheetName = new SimpleStringProperty(sheetName);
         this.oldRow = new SimpleIntegerProperty(oldRow);
         this.newRow = new SimpleIntegerProperty(newRow);
         this.oldValue = new SimpleStringProperty(oldValue);
         this.newValue = new SimpleStringProperty(newValue);
+        this.state = state;
         this.desc = new SimpleStringProperty(desc);
     }
 
@@ -36,11 +40,11 @@ public class CmdHistoryElement {
     }
 
     public int getOldRow() {
-        return oldRow.get();
+        return oldRow.get() + 1;
     }
 
     public int getNewRow() {
-        return newRow.get();
+        return newRow.get() + 1;
     }
 
     public String getOldValue() {
@@ -55,10 +59,20 @@ public class CmdHistoryElement {
         return desc.get();
     }
 
+    public int getSheetid() {
+        return sheetid;
+    }
+
+    public CellValue.CellState getState() {
+        return state;
+    }
+
     public boolean equals(Object other) {
         if(other instanceof CmdHistoryElement) {
             CmdHistoryElement otherE = (CmdHistoryElement) other;
-            return this.getSheetName().equals(otherE.getSheetName()) &&
+            return this.getSheetid() == otherE.getSheetid() &&
+                    this.getState() == otherE.getState() &&
+                    this.getSheetName().equals(otherE.getSheetName()) &&
                     this.getOldRow() == otherE.getOldRow() &&
                     this.getNewRow() == otherE.getNewRow() &&
                     this.getOldValue().equals(otherE.getOldValue()) &&
@@ -71,6 +85,8 @@ public class CmdHistoryElement {
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append(getSheetid());
+        builder.append(" ");
         builder.append(getSheetName());
         builder.append(" ");
         builder.append(getOldRow());
@@ -81,7 +97,9 @@ public class CmdHistoryElement {
         builder.append(" ");
         builder.append(getNewValue());
         builder.append(" ");
-        builder.append(getDesc());
+        builder.append(getState());
+        builder.append(" ");
+        builder.append(getState());
         return builder.toString();
     }
 

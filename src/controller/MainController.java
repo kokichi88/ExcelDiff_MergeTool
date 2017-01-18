@@ -7,6 +7,7 @@ import data.CellValue;
 import data.CmdHistoryElement;
 import data.Record;
 import excelprocessor.signals.ChangeTabSignal;
+import excelprocessor.signals.CmdHistorySelectedSignal;
 import excelprocessor.signals.DiffSignal;
 import excelprocessor.signals.PushLogSignal;
 import excelprocessor.workbook.WorkbookWrapper;
@@ -25,6 +26,7 @@ import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import services.Services;
+import view.HistoryRowFactory;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -110,7 +112,7 @@ public class MainController implements Initializable {
             configureTableViewStyle(tableViews[j]);
         }
         configureTableViewStyle(cmdHistoryTableView);
-
+        cmdHistoryTableView.setRowFactory(new HistoryRowFactory());
         cmdHistoryTableView.getColumns().clear();
         for(int i= 0 ; i < CmdHistoryElement.HISTORY_COLS.length; i++) {
             final int j = i;
@@ -121,13 +123,24 @@ public class MainController implements Initializable {
             cmdHistoryTableView.getColumns().add(col);
         }
 
-        ObservableList<CmdHistoryElement> datas = FXCollections.observableArrayList();
-        datas.addAll(new CmdHistoryElement("a",1, 1,"c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a",1, 2,"c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a",1, 3,"c","d","desc"));
-        datas.addAll(new CmdHistoryElement("a",1, 4,"c","d","desc"));
+        cmdHistoryTableView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                if(cmdHistoryTableView.getSelectionModel().getSelectedItem() != null) {
+                    TableView.TableViewSelectionModel selectionModel = cmdHistoryTableView.getSelectionModel();
+                    TablePosition tablePosition = (TablePosition)selectionModel.getSelectedCells().get(0);
+                    CmdHistoryElement element = (CmdHistoryElement)cmdHistoryTableView.getItems().get(tablePosition.getRow());
+                    CmdHistorySelectedSignal signal = new CmdHistorySelectedSignal(Services.get(MainController.class), element.getSheetid(),element.getOldRow() -1 ,
+                            element.getNewRow() -1);
+                    Services.get(BusManager.class).dispatch(signal);
+                }
+            }
+        });
+    }
 
-        cmdHistoryTableView.setItems(datas);
+    public void updateHistoryTableView(List<CmdHistoryElement> data) {
+        ObservableList<CmdHistoryElement> renderData = FXCollections.observableArrayList(data);
+        cmdHistoryTableView.setItems(renderData);
     }
 
     private void configureTableViewStyle(final TableView tableView) {
@@ -146,17 +159,17 @@ public class MainController implements Initializable {
             }
         });
 
-        tableView.
-                setStyle("-fx-selection-bar: #E6ED95; -fx-selection-bar-non-focused: #E6ED95;" +
-                        "-fx-selection-bar-text: firebrick;");
+//        tableView.
+//                setStyle("-fx-selection-bar: #; -fx-selection-bar-non-focused: #E6ED95; -fx-focus-color: transparent; ");
     }
 
     public TableView getTableView(int index) {
         return tableViews[index];
     }
 
-    public void scrollTableViewTo(int index, Record<String> row) {
+    public void scrollTableViewTo(int index, int row) {
         TableView tableView = tableViews[index];
+        tableView.getSelectionModel().select(row);
         tableView.scrollTo(row);
         tableView.getSelectionModel().select(row);
     }

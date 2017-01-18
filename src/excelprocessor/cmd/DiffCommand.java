@@ -10,6 +10,9 @@ import diff.KKString;
 import excelprocessor.signals.DiffSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Cell;
+import org.slf4j.Logger;
+import services.Services;
 
 import java.util.*;
 
@@ -38,35 +41,15 @@ public class DiffCommand implements ICommand<DiffSignal> {
         updateTableView(newWb, kkDiffs, newRecords, sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.INSERT,
                 DiffProcessor.Operation.EQUAL});
 
-        List<Record<String>> changes = getChangeRecords(oldWb, kkDiffs, oldRecords,sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.DELETE,
-                DiffProcessor.Operation.EQUAL});
+        controller.getTableView(MainController.OLD_FILE_INDEX).refresh();
+        controller.getTableView(MainController.NEW_FILE_INDEX).refresh();
+        String sheetName = oldWb.getSheetsName().get(sheet);
+        int oldColCount = oldWb.getMaxRowAndColumnAtSheet(sheet)[1];
+        int newColCount = newWb.getMaxRowAndColumnAtSheet(sheet)[1];
+        LinkedList<CmdHistoryElement> historyElements = getCmdHistory(sheet, sheetName, kkDiffs,
+                oldString, newString, oldColCount, newColCount );
+        controller.updateHistoryTableView(historyElements);
 
-        if(changes.size() > 0)
-            controller.scrollTableViewTo(MainController.OLD_FILE_INDEX, changes.get(0));
-    }
-
-    private List<Record<String>> getChangeRecords(WorkbookWrapper wb, List<DiffProcessor.Diff<String>> diffs, ObservableList<Record<String>> records,
-                                                 int sheet, DiffProcessor.Operation[] opFilters) {
-        List<Record<String>> changes = new ArrayList<Record<String>>();
-        int[] maxRowAndCol = wb.getMaxRowAndColumnAtSheet(sheet);
-        int maxCol = maxRowAndCol[1];
-        int index = -1;
-        int lastRowIndex = -1;
-        for(DiffProcessor.Diff<String> diff : diffs) {
-            if(isValidOp(opFilters, diff.operation)) {
-                for(int i = 0; i < diff.text.length(); ++i) {
-                    index++;
-                    if(diff.operation == DiffProcessor.Operation.DELETE) {
-                        int rowIndex = index / maxCol;
-                        if(rowIndex != lastRowIndex) {
-                            changes.add(records.get(rowIndex));
-                            lastRowIndex = rowIndex;
-                        }
-                    }
-                }
-            }
-        }
-        return changes;
     }
 
     private void updateTableView(WorkbookWrapper wb, List<DiffProcessor.Diff<String>> diffs, ObservableList<Record<String>> records,
@@ -95,6 +78,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                 }
             }
         }
+
     }
 
     boolean isValidOp(DiffProcessor.Operation[] validOps, DiffProcessor.Operation op) {
@@ -104,7 +88,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
         return false;
     }
 
-    public LinkedList<CmdHistoryElement> getCmdHistory(String sheetName,LinkedList<DiffProcessor.Diff<String>> diffs, KKString<String> text1, KKString<String> text2, int text1ColCount,
+    public LinkedList<CmdHistoryElement> getCmdHistory(int sheetid, String sheetName,LinkedList<DiffProcessor.Diff<String>> diffs, KKString<String> text1, KKString<String> text2, int text1ColCount,
                                                         int text2ColCount) throws Exception {
 
         LinkedList<CmdHistoryElement> ret = new LinkedList<CmdHistoryElement>();
@@ -134,8 +118,6 @@ public class DiffCommand implements ICommand<DiffSignal> {
             }
             if(i == diffs.size() - 1 && !canAdd) {
                 canAdd = true;
-                stack1 = Math.min(stack1, stack2);
-                stack2 = stack1;
             }
 
             if(visitedDiffs.size() > 0 && canAdd) {
@@ -162,8 +144,8 @@ public class DiffCommand implements ICommand<DiffSignal> {
                             break;
                     }
                 }
-                CmdHistoryElement element = new CmdHistoryElement(sheetName,
-                        row1, row2, oldValue, newValue, rowState.toString());
+                CmdHistoryElement element = new CmdHistoryElement(sheetid, sheetName,
+                        row1, row2, oldValue, newValue, rowState, rowState.toString());
                 ret.add(element);
                 visitedDiffs.clear();
             }
