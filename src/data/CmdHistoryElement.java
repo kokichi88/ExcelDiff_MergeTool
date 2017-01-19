@@ -76,8 +76,7 @@ public class CmdHistoryElement {
                     this.getOldRow() == otherE.getOldRow() &&
                     this.getNewRow() == otherE.getNewRow() &&
                     this.getOldValue().equals(otherE.getOldValue()) &&
-                    this.getNewValue().equals(otherE.getNewValue()) &&
-                    this.getDesc().equals(otherE.getDesc());
+                    this.getNewValue().equals(otherE.getNewValue());
         }else {
             return false;
         }
@@ -96,8 +95,6 @@ public class CmdHistoryElement {
         builder.append(getOldValue());
         builder.append(" ");
         builder.append(getNewValue());
-        builder.append(" ");
-        builder.append(getState());
         builder.append(" ");
         builder.append(getState());
         return builder.toString();
