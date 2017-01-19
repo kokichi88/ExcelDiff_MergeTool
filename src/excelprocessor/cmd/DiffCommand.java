@@ -11,6 +11,7 @@ import excelprocessor.signals.DiffSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Cell;
+import org.apache.poi.ss.util.CellReference;
 import org.slf4j.Logger;
 import services.Services;
 
@@ -119,35 +120,77 @@ public class DiffCommand implements ICommand<DiffSignal> {
             if(i == diffs.size() - 1 && !canAdd) {
                 canAdd = true;
             }
-
             if(visitedDiffs.size() > 0 && canAdd) {
+                int previousRow1 = Math.max(index1 + 1, 0) / text1ColCount;
+                int previousCol1 = Math.max(index1 + 1, 0) % text1ColCount;
+                int previousRow2 = Math.max(index2 + 1, 0) / text2ColCount;
+                int previousCol2 = Math.max(index2 + 1, 0) % text2ColCount;
                 index1 += stack1;
                 index2 += stack2;
-                stack1 = 0;
-                stack2 = 0;
-                int row1 = Math.max(index1, 0) / text1ColCount;
-                int row2 = Math.max(index2, 0) / text2ColCount;
+
+                int endRow1 = Math.max(index1, 0) / text1ColCount;
+                int startRow1 = previousRow1 >= endRow1 ? endRow1 : previousRow1;
+                int endCol1 = Math.max(index1, 0) % text1ColCount;
+                int startCol1 = previousCol1;
+
+                int endRow2 = Math.max(index2, 0) / text2ColCount;
+                int startRow2 = previousRow2 >= endRow2 ? endRow2 : previousRow2;
+                int endCol2 = Math.max(index2, 0) % text2ColCount;
+                int startCol2 = previousCol2;
+
                 String oldValue = "";
                 String newValue = "";
                 CellValue.CellState rowState = CellValue.CellState.UNCHANGED;
+                int startRow = 0;
+                int startCol = 0;
+                int endRow = 0;
+                int endCol = 0;
+                int numOfChangedCell = 0;
                 for(DiffProcessor.Diff<String> node : visitedDiffs) {
                     switch (node.operation) {
                         case DELETE:
                             oldValue = node.text.toString();
                             rowState = rowState == CellValue.CellState.UNCHANGED ?
                                     CellValue.CellState.REMOVED : CellValue.CellState.MODIFIED;
+                            startRow = startRow1;
+                            startCol = startCol1;
+                            endRow = endRow1;
+                            endCol = endCol1;
+                            numOfChangedCell = stack1;
                             break;
                         case INSERT:
                             newValue = node.text.toString();
                             rowState = rowState == CellValue.CellState.UNCHANGED ?
                                     CellValue.CellState.ADDED : CellValue.CellState.MODIFIED;
+                            startRow = startRow2;
+                            startCol = startCol2;
+                            endRow = endRow2;
+                            endCol = endCol2;
+                            numOfChangedCell = stack2;
                             break;
                     }
                 }
+                StringBuilder desc = new StringBuilder();
+                desc.append(rowState);
+
+                if(numOfChangedCell > 1) {
+                    desc.append(" ").append(numOfChangedCell).append(" cells from ")
+                            .append(CellReference.convertNumToColString(startCol))
+                            .append(":").append(startRow + 1).append(" to ")
+                            .append(CellReference.convertNumToColString(endCol))
+                            .append(":").append(endRow + 1);
+                }else {
+                    desc.append(" ").append(numOfChangedCell).append(" cell ")
+                            .append(CellReference.convertNumToColString(startCol))
+                            .append(":").append(startRow + 1);
+                }
+
                 CmdHistoryElement element = new CmdHistoryElement(sheetid, sheetName,
-                        row1, row2, oldValue, newValue, rowState, rowState.toString());
+                        startRow1, startRow2, oldValue, newValue, rowState, desc.toString());
                 ret.add(element);
                 visitedDiffs.clear();
+                stack1 = 0;
+                stack2 = 0;
             }
             if(diff.operation == DiffProcessor.Operation.EQUAL) {
                 index1 += diff.text.length();
