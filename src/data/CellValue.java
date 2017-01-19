@@ -89,25 +89,15 @@ public class CellValue<T> {
 
     public static void setCellStyle(TableCell cell, CellState newValue) {
         ObservableList<String> styleClass = cell.getStyleClass();
-        StyleSheetHelper.clearAdditionalStyle(styleClass);
+        StyleSheetHelper.clearCellAdditionalStyle(styleClass);
         if(newValue == null) {
         }else {
             switch (newValue) {
                 case UNCHANGED:
-
                     break;
-                case ADDED:
-//                    StyleSheetHelper.addStyle(styleClass, newValue);
-//                    cell.setStyle();
+                default :
+                    StyleSheetHelper.addStyle(styleClass, newValue.toString() + "-CELL");
                     break;
-                case REMOVED:
-//                    cell.setStyle("-fx-background-color: #7f9ee0 ;");
-                    break;
-                case MODIFIED:
-//                    cell.setStyle("-fx-background-color: #e07f96 ;");
-                    break;
-                case IMMUTABLE:
-//                    cell.setStyle("-fx-background-color: #BABABA ;");
             }
 
         }

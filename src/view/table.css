@@ -1,24 +1,47 @@
 .ADDED {
   -fx-control-inner-background: #7fe084;
-  -fx-accent: derive(-fx-control-inner-background, -40%);
-  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
-  -fx-selection-bar-non-focused: -fx-accent;
+  -fx-accent: derive(-fx-control-inner-background, -10%);
+  -fx-selection-bar-non-focused: -fx-control-inner-background;
 }
 
 .REMOVED {
   -fx-control-inner-background: #7f9ee0;
-  -fx-accent: derive(-fx-control-inner-background, -40%);
-  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
+  -fx-accent: derive(-fx-control-inner-background, -10%);
+  -fx-selection-bar-non-focused: -fx-control-inner-background;
 }
 
 .MODIFIED {
   -fx-control-inner-background: #e07f96;
-  -fx-accent: derive(-fx-control-inner-background, -40%);
-  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
+  -fx-accent: derive(-fx-control-inner-background, -10%);
+  -fx-selection-bar-non-focused: -fx-control-inner-background;
 }
 
 .IMMUTABLE {
   -fx-control-inner-background: #BABABA;
-  -fx-accent: derive(-fx-control-inner-background, -40%);
-  -fx-cell-hover-color: derive(-fx-control-inner-background, -20%);
+  -fx-accent: derive(-fx-control-inner-background, -10%);
+  -fx-selection-bar-non-focused: -fx-control-inner-background;
+}
+
+.ADDED-CELL {
+    -fx-background-color: #7fe084;
+}
+
+.REMOVED-CELL {
+    -fx-background-color: #7f9ee0;
+}
+
+.MODIFIED-CELL {
+    -fx-background-color: #e07f96;
+}
+
+.IMMUTABLE-CELL {
+  -fx-background-color: #BABABA ;
+}
+
+
+
+
+.table-row-cell:selected {
+    -fx-padding: -0.5;
+    -fx-border-color:blue;
 }

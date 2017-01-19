@@ -9,9 +9,15 @@ import javafx.collections.ObservableList;
 public class StyleSheetHelper {
 
     public static void clearAdditionalStyle(ObservableList<String> styleClasses) {
-        styleClasses.remove(CellValue.CellState.ADDED.toString());
-        styleClasses.remove(CellValue.CellState.REMOVED.toString());
-        styleClasses.remove(CellValue.CellState.MODIFIED.toString());
+        for(CellValue.CellState cellState : CellValue.CellState.values()) {
+            styleClasses.remove(cellState.toString());
+        }
+    }
+
+    public static void clearCellAdditionalStyle(ObservableList<String> styleClasses) {
+        for(CellValue.CellState cellState : CellValue.CellState.values()) {
+            styleClasses.remove(cellState.toString() + "-CELL");
+        }
     }
 
     public static void addStyle(ObservableList<String> styleClasses, CellValue.CellState state) {
