@@ -16,9 +16,15 @@ public class DiffProcessorTest extends TestCase {
     private DiffProcessor.Operation DELETE = DiffProcessor.Operation.DELETE;
     private DiffProcessor.Operation EQUAL = DiffProcessor.Operation.EQUAL;
     private DiffProcessor.Operation INSERT = DiffProcessor.Operation.INSERT;
+    private DiffProcessor.Operation EMPTY_DELETE = DiffProcessor.Operation.EMPTY_DELETE;
+    private DiffProcessor.Operation EMPTY_INSERT = DiffProcessor.Operation.EMPTY_INSERT;
+    private String EMPTY;
+    private KKString<String> SEPARATOR;
     @Override
     protected void setUp() throws Exception {
         processor = new DiffProcessor<Character>(Character.class);
+        EMPTY = "EMPTY";
+        SEPARATOR = new KKString<String>(EMPTY);
     }
 
     public void test_starts_with() throws Exception {
@@ -996,7 +1002,111 @@ public class DiffProcessorTest extends TestCase {
                 4 , 3, "[stat3, 4, name4, stat4]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff remove row and column ", expected, actual);
+    }
 
+    public void testSplitDiff() {
+
+        DiffProcessor.Diff<String> diff = new DiffProcessor.Diff<String>(INSERT,
+                "a1", "b1", "c1", EMPTY,
+                "a2", "b2", "c2");
+        LinkedList<DiffProcessor.Diff<String>> expected = diffList();
+        expected.add(new DiffProcessor.Diff<String>(INSERT, "a1", "b1", "c1"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_INSERT, EMPTY));
+        expected.add(new DiffProcessor.Diff<String>(INSERT, "a2", "b2", "c2"));
+        LinkedList<DiffProcessor.Diff<String>> actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty insert simple case 1 ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(INSERT,
+                "a1", "b1", "c1", EMPTY);
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(INSERT, "a1", "b1", "c1"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_INSERT, EMPTY));
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty insert simple case 2 ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(INSERT,
+                "a1", "b1", "c1", EMPTY,
+                "a2", "b2", "c2", EMPTY,
+                "a3", "b3", "c3", EMPTY);
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(INSERT, "a1", "b1", "c1"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_INSERT, EMPTY));
+        expected.add(new DiffProcessor.Diff<String>(INSERT, "a2", "b2", "c2"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_INSERT, EMPTY));
+        expected.add(new DiffProcessor.Diff<String>(INSERT, "a3", "b3", "c3"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_INSERT, EMPTY));
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty insert multiple times case 1 ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(DELETE,
+                "a1", "b1", "c1", EMPTY,
+                "a2", "b2", "c2");
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "a1", "b1", "c1"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_DELETE, EMPTY));
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "a2", "b2", "c2"));
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty delete simple case 1 ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(DELETE,
+                "a1", "b1", "c1", EMPTY);
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "a1", "b1", "c1"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_DELETE, EMPTY));
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty delete simple case 2 ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(DELETE,
+                "a1", "b1", "c1", EMPTY,
+                "a2", "b2", "c2", EMPTY,
+                "a3", "b3", "c3", EMPTY);
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "a1", "b1", "c1"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_DELETE, EMPTY));
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "a2", "b2", "c2"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_DELETE, EMPTY));
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "a3", "b3", "c3"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_DELETE, EMPTY));
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty delete multiple times case 1 ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(EQUAL,
+                "a1", "b1", "c1", EMPTY,
+                "a2", "b2", "c2", EMPTY,
+                "a3", "b3", "c3", EMPTY);
+        expected.clear();
+        expected.add(diff);
+
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty equal no change case 1 ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(DELETE,
+                "a1", "b1", "c1");
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "a1", "b1", "c1"));
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty not found case ", expected, actual);
+
+        diff = new DiffProcessor.Diff<String>(DELETE, EMPTY);
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_DELETE, EMPTY));
+        actual = diff.split(SEPARATOR);
+        assertEquals("testSplitDiff empty not delete empty case ", expected, actual);
+
+        LinkedList<DiffProcessor.Diff<String>> diffs = diffList();
+        diffs.add(new DiffProcessor.Diff<String>(DELETE, "1", "2"));
+        diffs.add(new DiffProcessor.Diff<String>(INSERT, "3", "4", EMPTY));
+
+        expected.clear();
+        expected.add(new DiffProcessor.Diff<String>(DELETE, "1", "2"));
+        expected.add(new DiffProcessor.Diff<String>(INSERT, "3", "4"));
+        expected.add(new DiffProcessor.Diff<String>(EMPTY_INSERT, EMPTY));
+
+        actual.clear();
+        for(DiffProcessor.Diff<String> diffI : diffs) {
+            actual.addAll(diffI.split(SEPARATOR));
+        }
+        assertEquals("testSplitDiff empty multiple action case 1 ", expected, actual);
     }
 
     private <T> LinkedList<DiffProcessor.Diff<T>> diffList(DiffProcessor.Diff<T>... diffs) {

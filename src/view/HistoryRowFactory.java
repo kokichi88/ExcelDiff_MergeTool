@@ -30,8 +30,6 @@ public class HistoryRowFactory implements Callback<TableView<CmdHistoryElement>,
             }
             StyleSheetHelper.addStyle(styleClass, element.getState());
         }
-
-
     }
 }
 

@@ -23,6 +23,8 @@ import java.util.*;
  * Created by apple on 1/2/17.
  */
 public class WorkbookWrapper {
+    public static final String EMPTY = "";
+    public static final KKString<String> SEPARATOR = new KKString(EMPTY);
     private static Map<Integer, ICellHandler> handlers;
     static {
         handlers = new HashMap<Integer, ICellHandler>();
@@ -75,13 +77,13 @@ public class WorkbookWrapper {
 
     private void fill(ObservableList<CellValue<String>> cells, int size) {
         for(int i = 0; i < size; ++i) {
-            cells.add(new CellValue<String>(""));
+            cells.add(new CellValue<String>(EMPTY));
         }
     }
 
     private void fill(ArrayList<String> strVals, int size) {
         for(int i = 0; i < size; ++i) {
-            strVals.add("");
+            strVals.add(EMPTY);
         }
     }
 

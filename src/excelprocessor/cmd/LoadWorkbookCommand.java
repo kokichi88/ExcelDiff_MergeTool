@@ -66,7 +66,7 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
                 @Override
                 protected WorkbookWrapper call() throws Exception {
                     final BusManager busManager = Services.get(BusManager.class);
-                    Thread.sleep(id * 2000);
+                    Thread.sleep(id * 500);
                     busManager.dispatch(new PushLogSignal("Start loading file " + path));
                     WorkbookWrapper wb = new WorkbookWrapper(path, id);
                     return wb;

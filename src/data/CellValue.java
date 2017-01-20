@@ -1,15 +1,12 @@
 package data;
 
+import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.StringConverter;
-import org.slf4j.Logger;
-import services.Services;
 import view.StyleSheetHelper;
 
 
@@ -58,7 +55,11 @@ public class CellValue<T> {
         cell.setConverter(new StringConverter<CellValue<T>>() {
             @Override
             public String toString(CellValue<T> item) {
-                return item == null ? "" : item.getValue().toString();
+                if(item == null) {
+                    return "";
+                }else {
+                    return item.getValue().toString();
+                }
             }
 
             @Override

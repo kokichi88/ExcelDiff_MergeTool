@@ -38,7 +38,7 @@ public class DiffProcessor<T> {
     }
 
     public enum Operation {
-        DELETE, INSERT, EQUAL
+        DELETE, INSERT, EQUAL, EMPTY_DELETE, EMPTY_INSERT
     }
 
     public DiffProcessor(Class<T> clazz) {
@@ -949,6 +949,30 @@ public class DiffProcessor<T> {
             this.text = text;
         }
 
+        public LinkedList<Diff<T>> split(KKString<T> separator) {
+            int i = -1;
+            KKString<T> source = text;
+            LinkedList<Diff<T>> diffs = new LinkedList<Diff<T>>();
+            switch (operation) {
+                case INSERT:
+                case DELETE:
+                    while((i = source.indexOf(separator, i)) > -1) {
+                        if(i != 0)
+                            diffs.add(new Diff<T>(operation, source.substring(0, i)));
+                        diffs.add(new Diff<T>(operation == Operation.INSERT ? Operation.EMPTY_INSERT: Operation.EMPTY_DELETE, separator));
+                        if(i < source.length() - 1)
+                            source = source.substring(i + 1);
+                        else
+                            source = new KKString<T>();
+                    }
+                break;
+            }
+
+            if(!KKString.isNullOrEmpty(source))
+                diffs.add(new Diff<T>(operation,source));
+
+            return diffs;
+        }
         /**
          * Display a human-readable version of this Diff.
          * @return text version.

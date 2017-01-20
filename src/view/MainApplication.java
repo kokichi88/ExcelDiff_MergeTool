@@ -51,6 +51,14 @@ public class MainApplication extends Application {
 
         initController(loader);
 
+//        Services.get(BusManager.class).dispatch(
+//                new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
+//                        + File.separator + "TestAccount1.xlsx", Services.get(MainController.class)));
+//
+//        Services.get(BusManager.class).dispatch(
+//                new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
+//                        + File.separator + "TestAccount2.xlsx", Services.get(MainController.class)));
+
         Services.get(BusManager.class).dispatch(
                 new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
                         + File.separator + "ConfigConstant_old.xlsx", Services.get(MainController.class)));

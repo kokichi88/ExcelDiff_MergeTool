@@ -35,11 +35,14 @@ public class DiffCommand implements ICommand<DiffSignal> {
         KKString<String> newString = newWb.getKKStringAtSheet(sheet);
         DiffProcessor<String> stringDiffProcessor = new DiffProcessor<String>(String.class);
         LinkedList<DiffProcessor.Diff<String>> kkDiffs = stringDiffProcessor.diff_main(oldString, newString);
+        kkDiffs = cleanUpKKString(kkDiffs, WorkbookWrapper.SEPARATOR);
 
         updateTableView(oldWb, kkDiffs, oldRecords,sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.DELETE,
+                DiffProcessor.Operation.EMPTY_DELETE,
                 DiffProcessor.Operation.EQUAL});
 
         updateTableView(newWb, kkDiffs, newRecords, sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.INSERT,
+                DiffProcessor.Operation.EMPTY_INSERT,
                 DiffProcessor.Operation.EQUAL});
 
         controller.getTableView(MainController.OLD_FILE_INDEX).refresh();
@@ -51,6 +54,14 @@ public class DiffCommand implements ICommand<DiffSignal> {
                 oldString, newString, oldColCount, newColCount );
         controller.updateHistoryTableView(historyElements);
 
+    }
+
+    public LinkedList<DiffProcessor.Diff<String>> cleanUpKKString(LinkedList<DiffProcessor.Diff<String>> kkDiffs, KKString<String> separator) {
+        LinkedList<DiffProcessor.Diff<String>> ret = new LinkedList<DiffProcessor.Diff<String>>();
+        for(DiffProcessor.Diff<String> diff : kkDiffs) {
+            ret.addAll(diff.split(separator));
+        }
+        return ret;
     }
 
     private void updateTableView(WorkbookWrapper wb, List<DiffProcessor.Diff<String>> diffs, ObservableList<Record<String>> records,
@@ -106,36 +117,60 @@ public class DiffCommand implements ICommand<DiffSignal> {
                     canAdd = true;
                     break;
                 case DELETE:
+                case EMPTY_DELETE:
                     visitedDiffs.add(diff);
                     stack1 += diff.text.length();
                     break;
                 case INSERT:
+                case EMPTY_INSERT:
                     visitedDiffs.add(diff);
                     stack2 += diff.text.length();
                     break;
             }
-            if(visitedDiffs.size() > 2) {
-                throw new Exception("it cant happen");
-            }
+
             if(i == diffs.size() - 1 && !canAdd) {
                 canAdd = true;
             }
             if(visitedDiffs.size() > 0 && canAdd) {
+                DiffProcessor.Diff<String> firstDiff = visitedDiffs.get(0);
+                if(firstDiff.operation == DiffProcessor.Operation.EMPTY_DELETE) {
+                    index1++;
+                    stack1--;
+                    visitedDiffs.remove(0);
+                }else if(firstDiff.operation == DiffProcessor.Operation.EMPTY_INSERT) {
+                    index2++;
+                    stack2--;
+                    visitedDiffs.remove(0);
+                }
+
                 int previousRow1 = Math.max(index1 + 1, 0) / text1ColCount;
                 int previousCol1 = Math.max(index1 + 1, 0) % text1ColCount;
                 int previousRow2 = Math.max(index2 + 1, 0) / text2ColCount;
                 int previousCol2 = Math.max(index2 + 1, 0) % text2ColCount;
                 index1 += stack1;
                 index2 += stack2;
-
-                int endRow1 = Math.max(index1, 0) / text1ColCount;
+                int d1 = 0;
+                int d2 = 0;
+                if(visitedDiffs.size() > 1) {
+                    DiffProcessor.Diff<String> lastDiff = visitedDiffs.get(visitedDiffs.size() - 1);
+                    if(lastDiff.operation == DiffProcessor.Operation.EMPTY_DELETE) {
+                        stack1--;
+                        d1 = -1;
+                        visitedDiffs.remove(lastDiff);
+                    }else if(lastDiff.operation == DiffProcessor.Operation.EMPTY_INSERT) {
+                        stack2--;
+                        d2 = -1;
+                        visitedDiffs.remove(lastDiff);
+                    }
+                }
+                int endRow1 = Math.max(index1 + d1, 0) / text1ColCount;
                 int startRow1 = previousRow1 >= endRow1 ? endRow1 : previousRow1;
-                int endCol1 = Math.max(index1, 0) % text1ColCount;
+                int endCol1 = Math.max(index1 + d1, 0) % text1ColCount;
                 int startCol1 = previousCol1;
 
-                int endRow2 = Math.max(index2, 0) / text2ColCount;
+                int endRow2 = Math.max(index2 + d2, 0) / text2ColCount;
                 int startRow2 = previousRow2 >= endRow2 ? endRow2 : previousRow2;
-                int endCol2 = Math.max(index2, 0) % text2ColCount;
+                int endCol2 = Math.max(index2 + d2, 0) % text2ColCount;
                 int startCol2 = previousCol2;
 
                 String oldValue = "";
@@ -146,9 +181,12 @@ public class DiffCommand implements ICommand<DiffSignal> {
                 int endRow = 0;
                 int endCol = 0;
                 int numOfChangedCell = 0;
+                int d3 = 0;
+                boolean isCreateCmd = false;
                 for(DiffProcessor.Diff<String> node : visitedDiffs) {
                     switch (node.operation) {
                         case DELETE:
+                            isCreateCmd = true;
                             oldValue = node.text.toString();
                             rowState = rowState == CellValue.CellState.UNCHANGED ?
                                     CellValue.CellState.REMOVED : CellValue.CellState.MODIFIED;
@@ -159,6 +197,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                             numOfChangedCell = stack1;
                             break;
                         case INSERT:
+                            isCreateCmd = true;
                             newValue = node.text.toString();
                             rowState = rowState == CellValue.CellState.UNCHANGED ?
                                     CellValue.CellState.ADDED : CellValue.CellState.MODIFIED;
@@ -168,26 +207,33 @@ public class DiffCommand implements ICommand<DiffSignal> {
                             endCol = endCol2;
                             numOfChangedCell = stack2;
                             break;
+                        case EMPTY_DELETE:
+                        case EMPTY_INSERT:
+                            d3++;
+                            break;
                     }
                 }
-                StringBuilder desc = new StringBuilder();
-                desc.append(rowState);
+                if(isCreateCmd) {
+                    numOfChangedCell -= d3;
+                    StringBuilder desc = new StringBuilder();
+                    desc.append(rowState);
 
-                if(numOfChangedCell > 1) {
-                    desc.append(" ").append(numOfChangedCell).append(" cells from ")
-                            .append(CellReference.convertNumToColString(startCol))
-                            .append(":").append(startRow + 1).append(" to ")
-                            .append(CellReference.convertNumToColString(endCol))
-                            .append(":").append(endRow + 1);
-                }else {
-                    desc.append(" ").append(numOfChangedCell).append(" cell ")
-                            .append(CellReference.convertNumToColString(startCol))
-                            .append(":").append(startRow + 1);
+                    if(numOfChangedCell > 1) {
+                        desc.append(" ").append(numOfChangedCell).append(" cells from ")
+                                .append(CellReference.convertNumToColString(startCol))
+                                .append(startRow + 1).append(" to ")
+                                .append(CellReference.convertNumToColString(endCol))
+                                .append(endRow + 1);
+                    }else {
+                        desc.append(" ").append(numOfChangedCell).append(" cell ")
+                                .append(CellReference.convertNumToColString(startCol))
+                                .append(startRow + 1);
+                    }
+
+                    CmdHistoryElement element = new CmdHistoryElement(sheetid, sheetName,
+                            startRow1, startRow2, oldValue, newValue, rowState, desc.toString());
+                    ret.add(element);
                 }
-
-                CmdHistoryElement element = new CmdHistoryElement(sheetid, sheetName,
-                        startRow1, startRow2, oldValue, newValue, rowState, desc.toString());
-                ret.add(element);
                 visitedDiffs.clear();
                 stack1 = 0;
                 stack2 = 0;
