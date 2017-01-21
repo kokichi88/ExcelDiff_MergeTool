@@ -13,13 +13,15 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import services.Services;
 
+import java.io.IOException;
+
 /**
  * Created by apple on 1/4/17.
  */
 public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
 
     @Override
-    public void execute(LoadWorkbookSignal signal) throws Exception {
+    public void execute(LoadWorkbookSignal signal) {
         final String path = signal.path;
         final int index = signal.index;
         final MainController controller = signal.controller;
@@ -29,11 +31,13 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
             @Override
             public void handle(WorkerStateEvent event) {
                 WorkbookWrapper wb = (WorkbookWrapper)event.getSource().getValue();
-                busManager.dispatch(new PushLogSignal("File " + path + " is loaded"));
-                busManager.dispatch(new UpdateTabPaneSignal(controller, index, wb));
-                controller.setWorkbooks(index, wb);
-                controller.setFileLableText(index, path);
-                controller.increaseLoadedWorkbook();
+                if(wb != null) {
+                    busManager.dispatch(new PushLogSignal("File " + path + " is loaded"));
+                    busManager.dispatch(new UpdateTabPaneSignal(controller, index, wb));
+                    controller.setWorkbooks(index, wb);
+                    controller.setFileLableText(index, path);
+                    controller.increaseLoadedWorkbook();
+                }
             }
         });
 
@@ -53,11 +57,16 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
         protected Task<WorkbookWrapper> createTask() {
             return new Task<WorkbookWrapper>() {
                 @Override
-                protected WorkbookWrapper call() throws Exception {
+                protected WorkbookWrapper call() throws InterruptedException {
                     final BusManager busManager = Services.get(BusManager.class);
-                    Thread.sleep(id * 100);
                     busManager.dispatch(new PushLogSignal("Start loading file " + path));
-                    WorkbookWrapper wb = new WorkbookWrapper(path, id);
+                    WorkbookWrapper wb = null;
+                    try {
+                        wb = new WorkbookWrapper(path, id);
+                    } catch (IOException e) {
+                        busManager.dispatch(new PushLogSignal("Error while loading " + path + ".\nDetails: " + e.getMessage()));
+
+                    }
                     return wb;
                 }
             };

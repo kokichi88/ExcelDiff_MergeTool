@@ -1,5 +1,6 @@
 package view;
 
+import diff.ArrayUtils;
 import excelprocessor.cmd.*;
 import bus.controller.BusManager;
 import excelprocessor.signals.*;
@@ -19,6 +20,7 @@ import services.Services;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
@@ -26,6 +28,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  * Created by apple on 12/30/16.
  */
 public class MainApplication extends Application {
+    private static boolean isCustomLoadFile = false;
+    private static String file1;
+    private static String file2;
     private final float ratio = 0.8f;
     @Override
     public void start(Stage stage) throws Exception {
@@ -58,14 +63,13 @@ public class MainApplication extends Application {
 //        Services.get(BusManager.class).dispatch(
 //                new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
 //                        + File.separator + "TestAccount2.xlsx", Services.get(MainController.class)));
+        if(isCustomLoadFile) {
+            Services.get(BusManager.class).dispatch(
+                    new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, file1, Services.get(MainController.class)));
+            Services.get(BusManager.class).dispatch(
+                    new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, file2, Services.get(MainController.class)));
+        }
 
-        Services.get(BusManager.class).dispatch(
-                new LoadWorkbookSignal(MainController.OLD_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "ConfigConstant_old.xlsx", Services.get(MainController.class)));
-
-        Services.get(BusManager.class).dispatch(
-                new LoadWorkbookSignal(MainController.NEW_FILE_INDEX, Utils.getCurrentWorkingDir() + File.separator + "resources"
-                        + File.separator + "ConfigConstant_new.xlsx", Services.get(MainController.class)));
     }
 
     private void initCmds() {
@@ -99,6 +103,13 @@ public class MainApplication extends Application {
     }
 
     public static void main(String[] args) {
+        Map<String, String> mapArgs = Utils.parseProgramArguments(args);
+        file1 = Utils.getProgramArguments(mapArgs, "file1");
+        file2 = Utils.getProgramArguments(mapArgs, "file2");
+
+        if(file1 != null && file2 != null) {
+            isCustomLoadFile = true;
+        }
         launch(args);
     }
 }

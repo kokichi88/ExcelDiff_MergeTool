@@ -16,6 +16,7 @@ public class WriteLogCmd implements ICommand<PushLogSignal> {
     public void execute(PushLogSignal signal) throws Exception{
         final String content = signal.content;
         if(MainController.display != null) {
+            Services.get(Logger.class).info(content);
             Platform.runLater(new Runnable() {
                 @Override
                 public void run() {
