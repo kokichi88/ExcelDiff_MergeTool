@@ -17,3 +17,5 @@ Supported excel format: xlsx. I will support more in the near future.
 Any feedbacks, bugs report or suggestion about features are welcome.
 
 Hope you may find it useful for your project :)
+
+![Alt text](/releases/demo.png?raw=true "Optional Title")
