@@ -18,7 +18,7 @@ public class Utils {
             String pair = args[i];
             String[] arr = pair.split("=");
             if(arr.length != 2) {
-                throw new IllegalArgumentException("use following format: key=value");
+                throw new IllegalArgumentException(pair + " doesn't use following format: key=value");
             }
             ret.put(arr[0], arr[1]);
         }
