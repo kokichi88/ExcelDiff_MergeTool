@@ -41,7 +41,7 @@ public class MainApplication extends Application {
                 System.exit(0);
             }
         });
-        stage.setTitle("None File- Excel Compare");
+        stage.setTitle("Excel Compare");
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int width =(int) (gd.getDisplayMode().getWidth() * ratio);
         int height =(int) (gd.getDisplayMode().getHeight() * ratio);

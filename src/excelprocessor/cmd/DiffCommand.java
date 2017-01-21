@@ -1,5 +1,6 @@
 package excelprocessor.cmd;
 
+import bus.controller.BusManager;
 import bus.controller.ICommand;
 import controller.MainController;
 import data.CellValue;
@@ -7,10 +8,15 @@ import data.CmdHistoryElement;
 import data.Record;
 import diff.DiffProcessor;
 import diff.KKString;
+import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.DiffSignal;
+import excelprocessor.signals.PushLogSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Cell;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableView;
 import org.apache.poi.ss.util.CellReference;
 import org.slf4j.Logger;
 import services.Services;
@@ -23,36 +29,44 @@ import java.util.*;
 public class DiffCommand implements ICommand<DiffSignal> {
     @Override
     public void execute(DiffSignal signal) throws Exception {
+        Services.get(BusManager.class).dispatch(new PushLogSignal("Start comparison"));
         MainController controller = signal.controller;
-        int sheet = signal.sheet;
+
         WorkbookWrapper oldWb = controller.getWorkbookWrapper(MainController.OLD_FILE_INDEX);
         WorkbookWrapper newWb = controller.getWorkbookWrapper(MainController.NEW_FILE_INDEX);
-
-        ObservableList<Record<String>> oldRecords = oldWb.getRenderDataAtSheet(sheet);
-        ObservableList<Record<String>> newRecords = newWb.getRenderDataAtSheet(sheet);
-
-        KKString<String> oldString = oldWb.getKKStringAtSheet(sheet);
-        KKString<String> newString = newWb.getKKStringAtSheet(sheet);
-        DiffProcessor<String> stringDiffProcessor = new DiffProcessor<String>(String.class);
-        LinkedList<DiffProcessor.Diff<String>> kkDiffs = stringDiffProcessor.diff_main(oldString, newString);
-        kkDiffs = cleanUpKKString(kkDiffs, WorkbookWrapper.SEPARATOR);
-
-        updateTableView(oldWb, kkDiffs, oldRecords,sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.DELETE,
-                DiffProcessor.Operation.EMPTY_DELETE,
-                DiffProcessor.Operation.EQUAL});
-
-        updateTableView(newWb, kkDiffs, newRecords, sheet, new DiffProcessor.Operation[]{DiffProcessor.Operation.INSERT,
-                DiffProcessor.Operation.EMPTY_INSERT,
-                DiffProcessor.Operation.EQUAL});
-
-        controller.getTableView(MainController.OLD_FILE_INDEX).refresh();
-        controller.getTableView(MainController.NEW_FILE_INDEX).refresh();
-        String sheetName = oldWb.getSheetsName().get(sheet);
-        int oldColCount = oldWb.getMaxRowAndColumnAtSheet(sheet)[1];
-        int newColCount = newWb.getMaxRowAndColumnAtSheet(sheet)[1];
-        LinkedList<CmdHistoryElement> historyElements = getCmdHistory(sheet, sheetName, kkDiffs,
-                oldString, newString, oldColCount, newColCount );
+        int numSheet1 = oldWb.getSheetsName().size();
+        int numSheet2 = newWb.getSheetsName().size();
+        int minSheet = Math.min(numSheet1, numSheet2);
+        ArrayList<LinkedList<DiffProcessor.Diff<String>>> diffsPerSheet = new ArrayList<LinkedList<DiffProcessor.Diff<String>>>();
+        LinkedList<CmdHistoryElement> historyElements = new LinkedList<CmdHistoryElement>();
+        for(int sheet = 0; sheet < minSheet; ++ sheet) {
+            String sheetName = oldWb.getSheetsName().get(sheet);
+            KKString<String> oldString = oldWb.getKKStringAtSheet(sheet);
+            KKString<String> newString = newWb.getKKStringAtSheet(sheet);
+            int oldColCount = oldWb.getMaxRowAndColumnAtSheet(sheet)[1];
+            int newColCount = newWb.getMaxRowAndColumnAtSheet(sheet)[1];
+            DiffProcessor<String> stringDiffProcessor = new DiffProcessor<String>(String.class);
+            LinkedList<DiffProcessor.Diff<String>> kkDiffs = stringDiffProcessor.diff_main(oldString, newString);
+            kkDiffs = cleanUpKKString(kkDiffs, WorkbookWrapper.SEPARATOR);
+            diffsPerSheet.add(kkDiffs);
+            historyElements.addAll(getCmdHistory(sheet, sheetName, kkDiffs,
+                oldString, newString, oldColCount, newColCount ));
+        }
+        controller.buildKKDiffsPerSheet(diffsPerSheet);
         controller.updateHistoryTableView(historyElements);
+
+        for(int index = 0; index < MainController.MAX_FILE; ++index) {
+            TabPane tabPane = controller.getTabPane(index);
+            int sheet = controller.getDefaultSheetIndexOf(index);
+            TableView tableView = controller.getTableView(index);
+            WorkbookWrapper wb = controller.getWorkbookWrapper(index);
+            if(sheet > -1) {
+                Tab tab = tabPane.getTabs().get(sheet);
+                ChangeTabSignal msg = new ChangeTabSignal(wb, tableView, tab, tab, sheet);
+                Services.get(BusManager.class).dispatch(msg);
+            }
+        }
+        Services.get(BusManager.class).dispatch(new PushLogSignal("Done comparison"));
 
     }
 
@@ -64,41 +78,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
         return ret;
     }
 
-    private void updateTableView(WorkbookWrapper wb, List<DiffProcessor.Diff<String>> diffs, ObservableList<Record<String>> records,
-                                 int sheet, DiffProcessor.Operation[] opFilters) {
-        int[] maxRowAndCol = wb.getMaxRowAndColumnAtSheet(sheet);
-        int maxCol = maxRowAndCol[1];
-        int index = -1;
-        for(DiffProcessor.Diff<String> diff : diffs) {
-            if(isValidOp(opFilters, diff.operation)) {
-                for(int i = 0; i < diff.text.length(); ++i) {
-                    index++;
-                    int row = index / maxCol;
-                    int col = index % maxCol + 1;
-                    CellValue<String> cellValue = records.get(row).cells.get(col);
-                    switch (diff.operation) {
-                        case EQUAL:
-                            cellValue.setCellState(CellValue.CellState.UNCHANGED);
-                            break;
-                        case DELETE:
-                            cellValue.setCellState(CellValue.CellState.REMOVED);
-                            break;
-                        case INSERT:
-                            cellValue.setCellState(CellValue.CellState.ADDED);
-                            break;
-                    }
-                }
-            }
-        }
 
-    }
-
-    boolean isValidOp(DiffProcessor.Operation[] validOps, DiffProcessor.Operation op) {
-        for(DiffProcessor.Operation operation : validOps) {
-            if(operation == op) return true;
-        }
-        return false;
-    }
 
     public LinkedList<CmdHistoryElement> getCmdHistory(int sheetid, String sheetName,LinkedList<DiffProcessor.Diff<String>> diffs, KKString<String> text1, KKString<String> text2, int text1ColCount,
                                                         int text2ColCount) throws Exception {
@@ -183,13 +163,13 @@ public class DiffCommand implements ICommand<DiffSignal> {
                 int numOfChangedCell = 0;
                 int d3 = 0;
                 boolean isCreateCmd = false;
+                int rowStateFlag = 1;
                 for(DiffProcessor.Diff<String> node : visitedDiffs) {
                     switch (node.operation) {
                         case DELETE:
                             isCreateCmd = true;
                             oldValue = node.text.toString();
-                            rowState = rowState == CellValue.CellState.UNCHANGED ?
-                                    CellValue.CellState.REMOVED : CellValue.CellState.MODIFIED;
+                            rowStateFlag *= -1;
                             startRow = startRow1;
                             startCol = startCol1;
                             endRow = endRow1;
@@ -199,8 +179,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                         case INSERT:
                             isCreateCmd = true;
                             newValue = node.text.toString();
-                            rowState = rowState == CellValue.CellState.UNCHANGED ?
-                                    CellValue.CellState.ADDED : CellValue.CellState.MODIFIED;
+                            rowStateFlag *= 2;
                             startRow = startRow2;
                             startCol = startCol2;
                             endRow = endRow2;
@@ -214,6 +193,13 @@ public class DiffCommand implements ICommand<DiffSignal> {
                     }
                 }
                 if(isCreateCmd) {
+                    if(rowStateFlag > 0) {
+                        rowState = CellValue.CellState.ADDED;
+                    }else if(rowStateFlag == -1) {
+                        rowState = CellValue.CellState.REMOVED;
+                    }else if(rowStateFlag < -1) {
+                        rowState = CellValue.CellState.MODIFIED;
+                    }
                     numOfChangedCell -= d3;
                     StringBuilder desc = new StringBuilder();
                     desc.append(rowState);

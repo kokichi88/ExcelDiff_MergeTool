@@ -16,9 +16,9 @@ import view.StyleSheetHelper;
 public class CellValue<T> {
     public enum CellState {
         IMMUTABLE,
+        REMOVED,
         UNCHANGED,
         ADDED,
-        REMOVED,
         MODIFIED
     }
     private final T value;

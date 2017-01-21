@@ -2,7 +2,6 @@ package excelprocessor.cmd;
 
 import bus.controller.BusManager;
 import bus.controller.ICommand;
-import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.LoadWorkbookSignal;
 import excelprocessor.signals.PushLogSignal;
 import controller.MainController;
@@ -12,9 +11,6 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TableView;
 import services.Services;
 
 /**
@@ -33,18 +29,11 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
             @Override
             public void handle(WorkerStateEvent event) {
                 WorkbookWrapper wb = (WorkbookWrapper)event.getSource().getValue();
-                controller.setWorkbooks(index, wb);
                 busManager.dispatch(new PushLogSignal("File " + path + " is loaded"));
                 busManager.dispatch(new UpdateTabPaneSignal(controller, index, wb));
-
-                TabPane tabPane = controller.getTabPane(index);
-                int sheet = controller.getDefaultSheetIndexOf(index);
-                TableView tableView = controller.getTableView(index);
-                if(sheet > -1) {
-                    Tab tab = tabPane.getTabs().get(sheet);
-                    ChangeTabSignal msg = new ChangeTabSignal(wb, tableView, tab, tab, sheet);
-                    Services.get(BusManager.class).dispatch(msg);
-                }
+                controller.setWorkbooks(index, wb);
+                controller.setFileLableText(index, path);
+                controller.increaseLoadedWorkbook();
             }
         });
 
@@ -66,7 +55,7 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
                 @Override
                 protected WorkbookWrapper call() throws Exception {
                     final BusManager busManager = Services.get(BusManager.class);
-                    Thread.sleep(id * 500);
+                    Thread.sleep(id * 100);
                     busManager.dispatch(new PushLogSignal("Start loading file " + path));
                     WorkbookWrapper wb = new WorkbookWrapper(path, id);
                     return wb;

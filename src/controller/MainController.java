@@ -6,6 +6,7 @@ import com.sun.javafx.scene.control.skin.VirtualFlow;
 import data.CellValue;
 import data.CmdHistoryElement;
 import data.Record;
+import diff.DiffProcessor;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.CmdHistorySelectedSignal;
 import excelprocessor.signals.DiffSignal;
@@ -29,10 +30,7 @@ import services.Services;
 import view.HistoryRowFactory;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by apple on 1/2/17.
@@ -51,6 +49,12 @@ public class MainController implements Initializable {
     private TabPane newTabPane;
 
     @FXML
+    private Label oldFileLb;
+
+    @FXML
+    private Label newFileLb;
+
+    @FXML
     private TableView cmdHistoryTableView;
 
     @FXML
@@ -59,45 +63,81 @@ public class MainController implements Initializable {
     private WorkbookWrapper[] workbooks = new WorkbookWrapper[MAX_FILE];
     private TableView<Record<String>>[] tableViews = new TableView[MAX_FILE];
     private TabPane[] tabPanes = new TabPane[MAX_FILE];
+    private Map<Integer, LinkedList<DiffProcessor.Diff<String>>> kkDiffsPerSheet = new HashMap<Integer, LinkedList<DiffProcessor.Diff<String>>>();
     private int[] selectedSheets = new int[MAX_FILE];
+    private int loadedWorkbooks = 0;
+    private Label[] fileLabels = new Label[MAX_FILE];
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initTableView();
         initTabPane();
+        initLable();
         Arrays.fill(selectedSheets, -1);
         display = outputContent;
     }
 
+    private void initLable() {
+        assert oldFileLb == null : "can't load fx:id=oldFileLb";
+        assert newFileLb == null : "can't load fx:id=newFileLb";
+        fileLabels[OLD_FILE_INDEX] = oldFileLb;
+        fileLabels[NEW_FILE_INDEX] = newFileLb;
+    }
+
+    public void setFileLableText(int index, String fname) {
+        fileLabels[index].setText(fname);
+    }
+
+    public void buildKKDiffsPerSheet(List<LinkedList<DiffProcessor.Diff<String>>> list) {
+        kkDiffsPerSheet.clear();
+        for(int i = 0 ; i < list.size(); ++i) {
+            kkDiffsPerSheet.put(i, list.get(i));
+        }
+    }
+
+    public LinkedList<DiffProcessor.Diff<String>> getKKDiffsBySheet(int sheet) {
+        return kkDiffsPerSheet.get(sheet);
+    }
+
     public void setSelectedSheet(int index, int sheet) {
         selectedSheets[index] = sheet;
-        int value = -1;
-        for(int i = 0; i < selectedSheets.length; ++i) {
-            if(value == -1 && i == 0)
-                value = selectedSheets[i];
-            else if(value == -1 || value != selectedSheets[i]) {
-                if(value > -1 && selectedSheets[i] > -1) {
-                    String msg = "Cant compare two different sheets id: " +
-                            workbooks[OLD_FILE_INDEX].getSheetsName().get(selectedSheets[OLD_FILE_INDEX]) + "  -  " +
-                            workbooks[NEW_FILE_INDEX].getSheetsName().get(selectedSheets[NEW_FILE_INDEX]) ;
-                    Services.get(BusManager.class).dispatch(new PushLogSignal(msg));
-                }
-                return;
-            }
-        }
-        String msg = "Compare two sheets id: " +
-                workbooks[OLD_FILE_INDEX].getSheetsName().get(selectedSheets[OLD_FILE_INDEX]) + "  -  " +
-                workbooks[NEW_FILE_INDEX].getSheetsName().get(selectedSheets[NEW_FILE_INDEX]) ;
-        Services.get(BusManager.class).dispatch(new PushLogSignal(msg));
-        Services.get(BusManager.class).dispatch(new DiffSignal(this, sheet));
+    }
+
+    public int getCurrentSelectedSheet(int index) {
+        return selectedSheets[index];
     }
 
     public void setWorkbooks(int index, WorkbookWrapper wb) {
         assert index < MAX_FILE : "index must be lesser than " + MAX_FILE;
         workbooks[index] = wb;
+
+    }
+
+    public void increaseLoadedWorkbook() {
+        synchronized (this) {
+            loadedWorkbooks++;
+        }
+        if(loadedWorkbooks % MAX_FILE == 0) {
+
+            Services.get(BusManager.class).dispatch(new DiffSignal(this));
+        }
+    }
+
+    public void clearLoadedWorkbook() {
+        synchronized (this) {
+            loadedWorkbooks = 0;
+        }
     }
 
     public WorkbookWrapper getWorkbookWrapper(int index) {
         return workbooks[index];
+    }
+
+    public int indexOfWorkbookWrapper(WorkbookWrapper wb) {
+        for(int i = 0; i < workbooks.length; ++i) {
+            if(wb == workbooks[i])
+                return i;
+        }
+        return -1;
     }
 
     public int getDefaultSheetIndexOf(int index) {

@@ -4,6 +4,7 @@ import bus.controller.ICommand;
 import controller.MainController;
 import data.CellValue;
 import data.Record;
+import diff.DiffProcessor;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.workbook.WorkbookWrapper;
 import javafx.beans.property.SimpleObjectProperty;
@@ -13,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.util.Callback;
 import services.Services;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -54,6 +56,54 @@ public class ChangeTabCommand implements ICommand<ChangeTabSignal> {
         newValue.setContent(tableView);
         MainController controller = Services.get(MainController.class);
         controller.setSelectedSheet(wb.getId(), sheet);
+        int index = controller.indexOfWorkbookWrapper(wb);
+        LinkedList<DiffProcessor.Diff<String>> kkDiffs = controller.getKKDiffsBySheet(sheet);
+        if(kkDiffs != null) {
+            DiffProcessor.Operation[] ops = index == MainController.OLD_FILE_INDEX ? new DiffProcessor.Operation[]{DiffProcessor.Operation.DELETE,
+                    DiffProcessor.Operation.EMPTY_DELETE,
+                    DiffProcessor.Operation.EQUAL} :
+                    new DiffProcessor.Operation[]{DiffProcessor.Operation.INSERT,
+                            DiffProcessor.Operation.EMPTY_INSERT,
+                            DiffProcessor.Operation.EQUAL};
+            updateTableView(wb, kkDiffs, records, sheet, ops);
+        }
+
+    }
+
+    private void updateTableView(WorkbookWrapper wb, List<DiffProcessor.Diff<String>> diffs, ObservableList<Record<String>> records,
+                                 int sheet, DiffProcessor.Operation[] opFilters) {
+        int[] maxRowAndCol = wb.getMaxRowAndColumnAtSheet(sheet);
+        int maxCol = maxRowAndCol[1];
+        int index = -1;
+        for(DiffProcessor.Diff<String> diff : diffs) {
+            if(isValidOp(opFilters, diff.operation)) {
+                for(int i = 0; i < diff.text.length(); ++i) {
+                    index++;
+                    int row = index / maxCol;
+                    int col = index % maxCol + 1;
+                    CellValue<String> cellValue = records.get(row).cells.get(col);
+                    switch (diff.operation) {
+                        case EQUAL:
+                            cellValue.setCellState(CellValue.CellState.UNCHANGED);
+                            break;
+                        case DELETE:
+                            cellValue.setCellState(CellValue.CellState.REMOVED);
+                            break;
+                        case INSERT:
+                            cellValue.setCellState(CellValue.CellState.ADDED);
+                            break;
+                    }
+                }
+            }
+        }
+
+    }
+
+    boolean isValidOp(DiffProcessor.Operation[] validOps, DiffProcessor.Operation op) {
+        for(DiffProcessor.Operation operation : validOps) {
+            if(operation == op) return true;
+        }
+        return false;
     }
 
 }
