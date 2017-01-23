@@ -15,7 +15,9 @@ If you use MAC:
 - For example : ./excelDiff.sh /Volumes/Data/Test/file1.xlsx /Volumes/Data/Test/file2.xlsx
 
 If you use Window:
+
 1. Open releases folder
+
 2. excelDiff.bat {pathToFile1} {pathToFile2}
 
 Supported excel format: xlsx. I will support more in the near future.
