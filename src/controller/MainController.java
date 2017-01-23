@@ -170,8 +170,7 @@ public class MainController implements Initializable {
                     TableView.TableViewSelectionModel selectionModel = cmdHistoryTableView.getSelectionModel();
                     TablePosition tablePosition = (TablePosition)selectionModel.getSelectedCells().get(0);
                     CmdHistoryElement element = (CmdHistoryElement)cmdHistoryTableView.getItems().get(tablePosition.getRow());
-                    CmdHistorySelectedSignal signal = new CmdHistorySelectedSignal(Services.get(MainController.class), element.getSheetid(),element.getOldRow() -1 ,
-                            element.getNewRow() -1);
+                    CmdHistorySelectedSignal signal = new CmdHistorySelectedSignal(Services.get(MainController.class), element);
                     Services.get(BusManager.class).dispatch(signal);
                 }
             }
@@ -207,11 +206,12 @@ public class MainController implements Initializable {
         return tableViews[index];
     }
 
-    public void scrollTableViewTo(int index, int row) {
+    public void scrollTableViewTo(int index, int row, int col) {
         TableView tableView = tableViews[index];
         tableView.getSelectionModel().select(row);
         tableView.scrollTo(row);
         tableView.getSelectionModel().select(row);
+        tableView.scrollToColumnIndex(col);
     }
 
     private void initTabPane() {

@@ -26,7 +26,7 @@ public class FocusRowCommand implements ICommand<CmdHistorySelectedSignal> {
             }
         }
 
-        controller.scrollTableViewTo(MainController.OLD_FILE_INDEX, signal.oldRow);
-        controller.scrollTableViewTo(MainController.NEW_FILE_INDEX, signal.newRow);
+        controller.scrollTableViewTo(MainController.OLD_FILE_INDEX, signal.oldRow, signal.oldCol);
+        controller.scrollTableViewTo(MainController.NEW_FILE_INDEX, signal.newRow, signal.newCol);
     }
 }

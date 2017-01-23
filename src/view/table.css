@@ -23,14 +23,26 @@
 }
 
 .ADDED-CELL {
+    -fx-border-width: 1;
+    -fx-padding: 3 0 0 4;
+    -fx-border-color: blue;
+    -fx-table-cell-border-color: blue;
     -fx-background-color: #7fe084;
 }
 
 .REMOVED-CELL {
+    -fx-border-width: 1;
+    -fx-padding: 3 0 0 4;
+    -fx-border-color: blue;
+    -fx-table-cell-border-color: blue;
     -fx-background-color: #7f9ee0;
 }
 
 .MODIFIED-CELL {
+    -fx-border-width: 1;
+    -fx-padding: 3 0 0 4;
+    -fx-border-color: blue;
+    -fx-table-cell-border-color: blue;
     -fx-background-color: #e07f96;
 }
 
@@ -39,9 +51,15 @@
 }
 
 
-
-
 .table-row-cell:selected {
-    -fx-padding: -0.5;
-    -fx-border-color:blue;
+    -fx-border-width: 1;
+    -fx-padding: -1;
+    -fx-border-color: blue;
+    -fx-table-cell-border-color: blue;
+
 }
+
+/*.table-row-cell:selected {*/
+    /*-fx-padding: 0;*/
+    /*-fx-border-color:blue;*/
+/*}*/

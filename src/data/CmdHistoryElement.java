@@ -16,6 +16,8 @@ public class CmdHistoryElement {
             "newValue", "desc"};
 
     private int sheetid;
+    private int oldCol;
+    private int newCol;
     private CellValue.CellState state;
     private final StringProperty sheetName;
     private final IntegerProperty oldRow;
@@ -24,8 +26,10 @@ public class CmdHistoryElement {
     private final StringProperty newValue;
     private final StringProperty desc;
 
-    public CmdHistoryElement(int sheetid, String sheetName, int oldRow, int newRow, String oldValue, String newValue, CellValue.CellState state, String desc) {
+    public CmdHistoryElement(int sheetid, String sheetName, int oldRow, int newRow, int oldCol, int newCol, String oldValue, String newValue, CellValue.CellState state, String desc) {
         this.sheetid = sheetid;
+        this.oldCol = oldCol;
+        this.newCol = newCol;
         this.sheetName = new SimpleStringProperty(sheetName);
         this.oldRow = new SimpleIntegerProperty(oldRow);
         this.newRow = new SimpleIntegerProperty(newRow);
@@ -65,6 +69,14 @@ public class CmdHistoryElement {
 
     public CellValue.CellState getState() {
         return state;
+    }
+
+    public int getOldCol() {
+        return oldCol;
+    }
+
+    public int getNewCol() {
+        return newCol;
     }
 
     public boolean equals(Object other) {

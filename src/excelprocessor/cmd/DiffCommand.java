@@ -217,7 +217,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                     }
 
                     CmdHistoryElement element = new CmdHistoryElement(sheetid, sheetName,
-                            startRow1, startRow2, oldValue, newValue, rowState, desc.toString());
+                            startRow1, startRow2, startCol1, startCol2, oldValue, newValue, rowState, desc.toString());
                     ret.add(element);
                 }
                 visitedDiffs.clear();
