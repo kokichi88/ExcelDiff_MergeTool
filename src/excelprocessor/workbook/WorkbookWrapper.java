@@ -30,7 +30,7 @@ public class WorkbookWrapper {
         handlers = new HashMap<Integer, ICellHandler>();
         handlers.put(Cell.CELL_TYPE_NUMERIC, new DoubleCellHandler());
         handlers.put(Cell.CELL_TYPE_STRING, new StringCellHandler());
-        handlers.put(Cell.CELL_TYPE_FORMULA, new StringCellHandler());
+        handlers.put(Cell.CELL_TYPE_FORMULA, new FormulaCellHandler());
         handlers.put(Cell.CELL_TYPE_BLANK, new StringCellHandler());
         handlers.put(Cell.CELL_TYPE_BOOLEAN, new BooleanCellHandler());
         handlers.put(Cell.CELL_TYPE_ERROR, new ErrorCellHandler());

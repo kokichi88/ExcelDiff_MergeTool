@@ -37,6 +37,8 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
                     controller.setWorkbooks(index, wb);
                     controller.setFileLableText(index, path);
                     controller.increaseLoadedWorkbook();
+                }else {
+                    busManager.dispatch(new PushLogSignal("File " + path + " cant be loaded"));
                 }
             }
         });
@@ -63,9 +65,8 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
                     WorkbookWrapper wb = null;
                     try {
                         wb = new WorkbookWrapper(path, id);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         busManager.dispatch(new PushLogSignal("Error while loading " + path + ".\nDetails: " + e.getMessage()));
-
                     }
                     return wb;
                 }
