@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import services.Services;
 import view.HistoryRowFactory;
 
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 
@@ -84,7 +85,20 @@ public class MainController implements Initializable {
     }
 
     public void setFileLableText(int index, String fname) {
-        fileLabels[index].setText(fname);
+        String[] arr = fname.split(File.separator);
+        String fileName;
+        try {
+            fileName = arr[arr.length-1];
+            arr = fileName.split("-");
+            fileName = arr[0];
+            if(index == OLD_FILE_INDEX)
+                fileName += " (Before)";
+        }catch (Exception e) {
+            e.printStackTrace();
+            fileName = fname;
+        }
+        fileLabels[index].setText(fileName);
+
     }
 
     public void buildKKDiffsPerSheet(List<LinkedList<DiffProcessor.Diff<String>>> list) {
@@ -198,8 +212,8 @@ public class MainController implements Initializable {
             }
         });
 
-//        tableView.
-//                setStyle("-fx-selection-bar: #; -fx-selection-bar-non-focused: #E6ED95; -fx-focus-color: transparent; ");
+        tableView.
+                setStyle("-fx-selection-bar: #E6ED95; -fx-selection-bar-non-focused: #E6ED95; -fx-focus-color: transparent; ");
     }
 
     public TableView getTableView(int index) {

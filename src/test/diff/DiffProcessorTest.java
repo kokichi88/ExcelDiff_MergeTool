@@ -743,35 +743,23 @@ public class DiffProcessorTest extends TestCase {
         DiffCommand diffCommand = new DiffCommand();
 
         KKString<String> text1 = new KKString<String>(
-                "",
-                "name",
-                "stat",
-                "1",
-                "name1",
-                "stat1",
-                "2",
-                "name2",
-                "stat2"
+                "", "name", "stat",
+                "1", "name1", "stat1",
+                "2", "name2", "stat2"
         );
         int text1ColCount = 3;
 
         KKString<String> text2 = new KKString<String>(
-                "",
-                "name",
-                "stat",
-                "1",
-                "name11",
-                "stat1",
-                "2",
-                "name2",
-                "stat2"
+                "", "name", "stat",
+                "1", "name11", "stat1",
+                "2", "name2", "stat2"
         );
         int text2ColCount = 3;
 
         LinkedList<DiffProcessor.Diff<String>> diffs = diffProcessor.diff_main(text1, text2);
         LinkedList<CmdHistoryElement> expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                1, 1, "[name1]", "[name11]", CellValue.CellState.MODIFIED, CellValue.CellState.MODIFIED.toString()));
+                1, 1, 1, 1,"[name1]", "[name11]", CellValue.CellState.MODIFIED, CellValue.CellState.MODIFIED.toString()));
         LinkedList<CmdHistoryElement> actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple modified case ", expected, actual);
 
@@ -793,7 +781,7 @@ public class DiffProcessorTest extends TestCase {
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                1, 0, "[1, name1, stat1, 2, name2, stat2]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                1, 0, 0, 0, "[1, name1, stat1, 2, name2, stat2]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple removed case ", expected, actual);
 
@@ -811,7 +799,7 @@ public class DiffProcessorTest extends TestCase {
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                1, 0, "[2]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                1, 0, 0, 0, "[2]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple removed case 2", expected, actual);
 
@@ -844,41 +832,32 @@ public class DiffProcessorTest extends TestCase {
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                0, 1, "", "[1, name1, stat1, 2, name2, stat2]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                0, 1, 0, 0, "[]", "[1, name1, stat1, 2, name2, stat2]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple added case ", expected, actual);
 
         text1 = new KKString<String>(
-                "",
-                "name",
-                "stat",
-                "1",
-                "name1",
-                "stat1",
-                "2",
-                "name2",
-                "stat2"
+                "", "name", "stat",
+                "1", "name1", "stat1",
+                "2", "name2", "stat2"
         );
         text1ColCount = 3;
 
         text2 = new KKString<String>(
-                "",
-                "name",
-                "1",
-                "name1",
-                "2",
-                "name2"
+                "", "name",
+                "1", "name1",
+                "2", "name2"
         );
         text2ColCount = 2;
 
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                0, 0, "[stat]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                0, 0, 2, 1, "[stat]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                1, 1, "[stat1]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                1, 1, 2, 1, "[stat1]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                2, 2, "[stat2]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                2, 2, 2, 1, "[stat2]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff simple remove column case ", expected, actual);
 
@@ -908,13 +887,13 @@ public class DiffProcessorTest extends TestCase {
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                0, 0, "", "[stat]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                0, 0, 1, 2, "[]", "[stat]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                1, 1, "", "[stat1]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                1, 1, 1, 2, "[]", "[stat1]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                2, 2, "", "[stat2]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                2, 2, 1, 2, "[]", "[stat2]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
-        assertEquals("test_getRowDiff simple add row case ", expected, actual);
+        assertEquals("test_getRowDiff simple add column case ", expected, actual);
 
         text1 = new KKString<String>(
                 "",
@@ -945,7 +924,7 @@ public class DiffProcessorTest extends TestCase {
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                3, 3, "[3, name3]", "[4, name4, 5, name5]", CellValue.CellState.MODIFIED, CellValue.CellState.MODIFIED.toString()));
+                3, 3, 0, 0, "[3, name3]", "[4, name4, 5, name5]", CellValue.CellState.MODIFIED, CellValue.CellState.MODIFIED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff remove and insert row case ", expected, actual);
 
@@ -966,13 +945,13 @@ public class DiffProcessorTest extends TestCase {
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                0 , 0, "", "[stat]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                0 , 0, 1, 2, "[]", "[stat]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                1 , 1, "", "[stat1]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                1 , 1, 1, 2, "[]", "[stat1]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                2 , 2, "", "[stat2, 4, name4, stat4]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                2 , 2, 1, 2, "[]", "[stat2, 4, name4, stat4]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                3 , 4, "", "[stat3, 4, name4, stat4]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
+                3 , 4, 1, 2, "[]", "[stat3, 4, name4, stat4]", CellValue.CellState.ADDED, CellValue.CellState.ADDED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff add row and column ", expected, actual);
 
@@ -993,13 +972,13 @@ public class DiffProcessorTest extends TestCase {
         diffs = diffProcessor.diff_main(text1, text2);
         expected = new LinkedList<CmdHistoryElement>();
         expected.add(new CmdHistoryElement(0, "sheet1",
-                0 , 0, "[stat]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                0 , 0, 2, 1, "[stat]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                1 , 1, "[stat1]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                1 , 1, 2, 1, "[stat1]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                2 , 2, "[stat2, 4, name4, stat4]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                2 , 2, 2, 1, "[stat2, 4, name4, stat4]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         expected.add(new CmdHistoryElement(0, "sheet1",
-                4 , 3, "[stat3, 4, name4, stat4]", "", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
+                4 , 3, 2, 1, "[stat3, 4, name4, stat4]", "[]", CellValue.CellState.REMOVED, CellValue.CellState.REMOVED.toString()));
         actual = diffCommand.getCmdHistory(0, "sheet1", diffs, text1, text2, text1ColCount, text2ColCount);
         assertEquals("test_getRowDiff remove row and column ", expected, actual);
     }

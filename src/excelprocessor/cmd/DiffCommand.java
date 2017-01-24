@@ -153,11 +153,13 @@ public class DiffCommand implements ICommand<DiffSignal> {
                 int endCol2 = Math.max(index2 + d2, 0) % text2ColCount;
                 int startCol2 = previousCol2;
 
-                String oldValue = "";
-                String newValue = "";
+                KKString<String> oldValue = new KKString<String>();
+                KKString<String> newValue = new KKString<String>();
                 CellValue.CellState rowState = CellValue.CellState.UNCHANGED;
                 int startRow = 0;
                 int startCol = 0;
+                int oldStartCol = -1;
+                int newStartCol = -1;
                 int endRow = 0;
                 int endCol = 0;
                 int numOfChangedCell = 0;
@@ -168,7 +170,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                     switch (node.operation) {
                         case DELETE:
                             isCreateCmd = true;
-                            oldValue = node.text.toString();
+                            oldValue = oldValue.concat(node.text);
                             rowStateFlag *= -1;
                             startRow = startRow1;
                             startCol = startCol1;
@@ -178,7 +180,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                             break;
                         case INSERT:
                             isCreateCmd = true;
-                            newValue = node.text.toString();
+                            newValue = newValue.concat(node.text);
                             rowStateFlag *= 2;
                             startRow = startRow2;
                             startCol = startCol2;
@@ -195,10 +197,15 @@ public class DiffCommand implements ICommand<DiffSignal> {
                 if(isCreateCmd) {
                     if(rowStateFlag > 0) {
                         rowState = CellValue.CellState.ADDED;
+                        oldStartCol = Math.max(0, startCol - 1);
+                        newStartCol = startCol;
                     }else if(rowStateFlag == -1) {
                         rowState = CellValue.CellState.REMOVED;
+                        oldStartCol = startCol;
+                        newStartCol = Math.max(0, startCol - 1);
                     }else if(rowStateFlag < -1) {
                         rowState = CellValue.CellState.MODIFIED;
+                        oldStartCol = newStartCol = startCol;
                     }
                     numOfChangedCell -= d3;
                     StringBuilder desc = new StringBuilder();
@@ -217,7 +224,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
                     }
 
                     CmdHistoryElement element = new CmdHistoryElement(sheetid, sheetName,
-                            startRow1, startRow2, startCol1, startCol2, oldValue, newValue, rowState, desc.toString());
+                            startRow1, startRow2, oldStartCol, newStartCol, oldValue.toString(), newValue.toString(), rowState, desc.toString());
                     ret.add(element);
                 }
                 visitedDiffs.clear();

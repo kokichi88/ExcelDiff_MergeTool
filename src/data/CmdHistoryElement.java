@@ -87,6 +87,8 @@ public class CmdHistoryElement {
                     this.getSheetName().equals(otherE.getSheetName()) &&
                     this.getOldRow() == otherE.getOldRow() &&
                     this.getNewRow() == otherE.getNewRow() &&
+                    this.getOldCol() == otherE.getOldCol() &&
+                    this.getNewCol() == otherE.getNewCol() &&
                     this.getOldValue().equals(otherE.getOldValue()) &&
                     this.getNewValue().equals(otherE.getNewValue());
         }else {
@@ -103,6 +105,10 @@ public class CmdHistoryElement {
         builder.append(getOldRow());
         builder.append(" ");
         builder.append(getNewRow());
+        builder.append(" ");
+        builder.append(getOldCol());
+        builder.append(" ");
+        builder.append(getNewCol());
         builder.append(" ");
         builder.append(getOldValue());
         builder.append(" ");
