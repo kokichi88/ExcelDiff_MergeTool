@@ -32,7 +32,7 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
             public void handle(WorkerStateEvent event) {
                 WorkbookWrapper wb = (WorkbookWrapper)event.getSource().getValue();
                 if(wb != null) {
-                    busManager.dispatch(new PushLogSignal("File " + path + " is loaded"));
+
                     busManager.dispatch(new UpdateTabPaneSignal(controller, index, wb));
                     controller.setWorkbooks(index, wb);
                     controller.setFileLableText(index, path);
@@ -61,10 +61,13 @@ public class LoadWorkbookCommand implements ICommand<LoadWorkbookSignal> {
                 @Override
                 protected WorkbookWrapper call() throws InterruptedException {
                     final BusManager busManager = Services.get(BusManager.class);
+                    long lastTime = System.currentTimeMillis();
                     busManager.dispatch(new PushLogSignal("Start loading file " + path));
                     WorkbookWrapper wb = null;
                     try {
                         wb = new WorkbookWrapper(path, id);
+                        long elapsedTime = System.currentTimeMillis() - lastTime;
+                        busManager.dispatch(new PushLogSignal("File " + path + " is loaded in " + elapsedTime + "ms"));
                     } catch (Exception e) {
                         busManager.dispatch(new PushLogSignal("Error while loading " + path + ".\nDetails: " + e.getMessage()));
                     }

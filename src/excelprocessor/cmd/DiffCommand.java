@@ -64,7 +64,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
             }
         }
         long elapsedTime = System.currentTimeMillis() - currentTime;
-        Services.get(BusManager.class).dispatch(new PushLogSignal("Comparison's done in " + elapsedTime + " ms"));
+        Services.get(BusManager.class).dispatch(new PushLogSignal("Comparison's done in " + elapsedTime + "ms"));
 
     }
 
