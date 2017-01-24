@@ -172,9 +172,9 @@ public class DiffCommand implements ICommand<DiffSignal> {
                             rowStateFlag *= -1;
                             startRow = startRow1;
                             startCol = startCol1;
-                            endRow = endRow1;
-                            endCol = endCol1;
-                            numOfChangedCell = stack1;
+                            endRow = Math.max(endRow1, endRow);
+                            endCol = Math.max(endCol1, endCol);
+                            numOfChangedCell = Math.max(stack1, numOfChangedCell);
                             break;
                         case INSERT:
                             isCreateCmd = true;
@@ -182,9 +182,9 @@ public class DiffCommand implements ICommand<DiffSignal> {
                             rowStateFlag *= 2;
                             startRow = startRow2;
                             startCol = startCol2;
-                            endRow = endRow2;
-                            endCol = endCol2;
-                            numOfChangedCell = stack2;
+                            endRow = Math.max(endRow2, endRow);
+                            endCol = Math.max(endCol2, endCol);
+                            numOfChangedCell = Math.max(stack2, numOfChangedCell);
                             break;
                         case EMPTY_DELETE:
                         case EMPTY_INSERT:
