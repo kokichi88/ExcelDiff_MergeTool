@@ -17,10 +17,15 @@ public class FormulaCellHandler implements ICellHandler<String> {
     public String stringValueOf(Cell cell) {
         Workbook wb = cell.getSheet().getWorkbook();
         FormulaEvaluator formulaEval =  wb.getCreationHelper().createFormulaEvaluator();
-        String value= formulaEval.evaluate(cell).formatAsString();
-        StringBuilder builder = new StringBuilder();
-        builder.append("").append(value).append("\n").append("").append(getValue(cell));
-        return builder.toString();
+        String formula = getValue(cell);
+        try {
+            String value= formulaEval.evaluate(cell).formatAsString();
+            StringBuilder builder = new StringBuilder();
+            builder.append("").append(value).append("\n").append("").append(getValue(cell));
+            return builder.toString();
+        }catch (Exception e) {
+            return "Formula error " + formula;
+        }
     }
 
     @Override
