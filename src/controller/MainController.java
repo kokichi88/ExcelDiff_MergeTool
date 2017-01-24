@@ -221,7 +221,6 @@ public class MainController implements Initializable {
         TableView tableView = tableViews[index];
         tableView.getSelectionModel().select(row);
         tableView.scrollTo(row);
-        tableView.getSelectionModel().select(row);
         tableView.scrollToColumnIndex(col);
     }
 
