@@ -5,20 +5,16 @@ import bus.controller.ICommand;
 import controller.MainController;
 import data.CellValue;
 import data.CmdHistoryElement;
-import data.Record;
 import diff.DiffProcessor;
 import diff.KKString;
 import excelprocessor.signals.ChangeTabSignal;
 import excelprocessor.signals.DiffSignal;
 import excelprocessor.signals.PushLogSignal;
 import excelprocessor.workbook.WorkbookWrapper;
-import javafx.collections.ObservableList;
-import javafx.scene.control.Cell;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import org.apache.poi.ss.util.CellReference;
-import org.slf4j.Logger;
 import services.Services;
 
 import java.util.*;
@@ -29,7 +25,8 @@ import java.util.*;
 public class DiffCommand implements ICommand<DiffSignal> {
     @Override
     public void execute(DiffSignal signal) throws Exception {
-        Services.get(BusManager.class).dispatch(new PushLogSignal("Start comparison"));
+        long currentTime = System.currentTimeMillis();
+        Services.get(BusManager.class).dispatch(new PushLogSignal("Start comparison "));
         MainController controller = signal.controller;
 
         WorkbookWrapper oldWb = controller.getWorkbookWrapper(MainController.OLD_FILE_INDEX);
@@ -37,7 +34,7 @@ public class DiffCommand implements ICommand<DiffSignal> {
         int numSheet1 = oldWb.getSheetsName().size();
         int numSheet2 = newWb.getSheetsName().size();
         int minSheet = Math.min(numSheet1, numSheet2);
-        ArrayList<LinkedList<DiffProcessor.Diff<String>>> diffsPerSheet = new ArrayList<LinkedList<DiffProcessor.Diff<String>>>();
+        Map<Integer, LinkedList<DiffProcessor.Diff<String>>> kkDiffsPerSheet = new HashMap<Integer, LinkedList<DiffProcessor.Diff<String>>>();
         LinkedList<CmdHistoryElement> historyElements = new LinkedList<CmdHistoryElement>();
         for(int sheet = 0; sheet < minSheet; ++ sheet) {
             String sheetName = oldWb.getSheetsName().get(sheet);
@@ -48,11 +45,11 @@ public class DiffCommand implements ICommand<DiffSignal> {
             DiffProcessor<String> stringDiffProcessor = new DiffProcessor<String>(String.class);
             LinkedList<DiffProcessor.Diff<String>> kkDiffs = stringDiffProcessor.diff_main(oldString, newString);
             kkDiffs = cleanUpKKString(kkDiffs, WorkbookWrapper.SEPARATOR);
-            diffsPerSheet.add(kkDiffs);
+            kkDiffsPerSheet.put(sheet, kkDiffs);
             historyElements.addAll(getCmdHistory(sheet, sheetName, kkDiffs,
                 oldString, newString, oldColCount, newColCount ));
         }
-        controller.buildKKDiffsPerSheet(diffsPerSheet);
+        controller.setKKDiffsPerSheet(kkDiffsPerSheet);
         controller.updateHistoryTableView(historyElements);
 
         for(int index = 0; index < MainController.MAX_FILE; ++index) {
@@ -66,7 +63,8 @@ public class DiffCommand implements ICommand<DiffSignal> {
                 Services.get(BusManager.class).dispatch(msg);
             }
         }
-        Services.get(BusManager.class).dispatch(new PushLogSignal("Done comparison"));
+        long elapsedTime = System.currentTimeMillis() - currentTime;
+        Services.get(BusManager.class).dispatch(new PushLogSignal("Comparison's done in " + elapsedTime + " ms"));
 
     }
 

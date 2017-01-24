@@ -9,7 +9,7 @@ public class DiffProcessor<T> {
     /**
      * Number of seconds to map a diff before giving up (0 for infinity).
      */
-    public float Diff_Timeout = 1.0f;
+    public float Diff_Timeout = 20.0f;
     /**
      * Cost of an empty edit operation in terms of edit characters.
      */
@@ -46,6 +46,12 @@ public class DiffProcessor<T> {
     }
 
     public LinkedList<Diff<T>> diff_main(KKString<T> text1, KKString<T> text2) {
+        return diff_main(text1, text2, true);
+    }
+
+    public LinkedList<Diff<T>> diff_main(KKString<T> text1, KKString<T> text2, int chunkSize1, int chunkSize2) {
+        this.chunkSize1 = chunkSize1;
+        this.chunkSize2 = chunkSize2;
         return diff_main(text1, text2, true);
     }
 

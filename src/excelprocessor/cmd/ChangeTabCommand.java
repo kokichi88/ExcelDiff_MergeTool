@@ -59,9 +59,10 @@ public class ChangeTabCommand implements ICommand<ChangeTabSignal> {
         int index = controller.indexOfWorkbookWrapper(wb);
         LinkedList<DiffProcessor.Diff<String>> kkDiffs = controller.getKKDiffsBySheet(sheet);
         if(kkDiffs != null) {
-            DiffProcessor.Operation[] ops = index == MainController.OLD_FILE_INDEX ? new DiffProcessor.Operation[]{DiffProcessor.Operation.DELETE,
-                    DiffProcessor.Operation.EMPTY_DELETE,
-                    DiffProcessor.Operation.EQUAL} :
+            DiffProcessor.Operation[] ops = index == MainController.OLD_FILE_INDEX ?
+                    new DiffProcessor.Operation[]{DiffProcessor.Operation.DELETE,
+                            DiffProcessor.Operation.EMPTY_DELETE,
+                            DiffProcessor.Operation.EQUAL} :
                     new DiffProcessor.Operation[]{DiffProcessor.Operation.INSERT,
                             DiffProcessor.Operation.EMPTY_INSERT,
                             DiffProcessor.Operation.EQUAL};

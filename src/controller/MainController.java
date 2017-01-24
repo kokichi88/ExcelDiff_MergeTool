@@ -101,11 +101,8 @@ public class MainController implements Initializable {
 
     }
 
-    public void buildKKDiffsPerSheet(List<LinkedList<DiffProcessor.Diff<String>>> list) {
-        kkDiffsPerSheet.clear();
-        for(int i = 0 ; i < list.size(); ++i) {
-            kkDiffsPerSheet.put(i, list.get(i));
-        }
+    public void setKKDiffsPerSheet(Map<Integer, LinkedList<DiffProcessor.Diff<String>>> map) {
+        kkDiffsPerSheet = map;
     }
 
     public LinkedList<DiffProcessor.Diff<String>> getKKDiffsBySheet(int sheet) {

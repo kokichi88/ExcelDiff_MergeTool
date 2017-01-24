@@ -42,14 +42,16 @@ public class BusManager {
         try {
             while(queues.size() > 0) {
                 ISignal signal = queues.poll();
-                List<ICommand> cmds = mapCommands.get(signal.getClass());
-                if(cmds != null) {
-                    for(ICommand cmd : cmds) {
-                        cmd.execute(signal);
-                        ++numCommandExecuted;
+                if(signal != null) {
+                    List<ICommand> cmds = mapCommands.get(signal.getClass());
+                    if(cmds != null) {
+                        for(ICommand cmd : cmds) {
+                            cmd.execute(signal);
+                            ++numCommandExecuted;
+                        }
+                    }else {
+                        throw new Exception("unsupported signal " + signal.getClass());
                     }
-                }else {
-                    throw new Exception("unsupported signal " + signal.getClass());
                 }
             }
         }catch (Exception e) {
