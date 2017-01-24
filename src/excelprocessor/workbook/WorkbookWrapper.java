@@ -7,10 +7,7 @@ import diff.KKString;
 import excelprocessor.cellhandler.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -45,9 +42,9 @@ public class WorkbookWrapper {
     private List<ArrayList<String>> stringValuesPerSheet;
     private List<ObservableList<Record<String>>> rowDatasPerSheet;
 
-    public WorkbookWrapper(String path, int id) throws IOException {
+    public WorkbookWrapper(String path, int id) throws Exception {
         FileInputStream file = new FileInputStream(new File(path));
-        this.workbook = new XSSFWorkbook(file);
+        this.workbook = WorkbookFactory.create(file);
         this.path = path;
         this.id = id;
         init();
