@@ -9,7 +9,7 @@ public class DiffProcessor<T> {
     /**
      * Number of seconds to map a diff before giving up (0 for infinity).
      */
-    public float Diff_Timeout = 20.0f;
+    public float Diff_Timeout = 0f;
     /**
      * Cost of an empty edit operation in terms of edit characters.
      */
