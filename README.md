@@ -20,7 +20,7 @@ If you use Window:
 
 2. excelDiff.bat {pathToFile1} {pathToFile2}
 
-Supported excel format: xlsx. I will support more in the near future.
+Supported excel format: xls, xlsx, xlsm. I will support more in the near future.
 
 Any feedbacks, bugs report or suggestion about features are welcome.
 
